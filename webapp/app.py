@@ -23,6 +23,9 @@ from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
 
 # Importar la calculadora corregida
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'calculadoras-python'))
 from Calculadora_Modalidad_40_CORREGIDA import CalculadoraModalidad40Corregida
 
 app = Flask(__name__)

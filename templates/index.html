@@ -110,15 +110,120 @@
                         </div>
                         <div class="card-body">
                             <form id="calculadoraForm">
-                                <!-- Datos Básicos -->
-                                <div class="mb-3">
-                                    <label class="form-label">
-                                        <i class="fas fa-calendar-alt me-2"></i>Semanas Cotizadas Actuales
-                                    </label>
-                                    <input type="number" class="form-control" id="semanas_cotizadas" 
-                                           placeholder="Ej: 758" min="500" required>
-                                    <div class="form-text">Mínimo 500 semanas para pensión</div>
+                                <!-- Datos Personales -->
+                                <div class="card mb-4">
+                                    <div class="card-header bg-light">
+                                        <h6 class="mb-0"><i class="fas fa-user me-2"></i>Datos Personales</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">Nombre(s) *</label>
+                                                <input type="text" class="form-control" id="nombre" 
+                                                       placeholder="Ej: Juan Carlos" required>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">Apellido Paterno *</label>
+                                                <input type="text" class="form-control" id="apellido_paterno" 
+                                                       placeholder="Ej: García" required>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">Apellido Materno</label>
+                                                <input type="text" class="form-control" id="apellido_materno" 
+                                                       placeholder="Ej: López">
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">RFC</label>
+                                                <input type="text" class="form-control" id="rfc" 
+                                                       placeholder="Ej: GAGL800101ABC" maxlength="13"
+                                                       style="text-transform: uppercase;">
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">CURP</label>
+                                                <input type="text" class="form-control" id="curp" 
+                                                       placeholder="Ej: GAGL800101HDFRPR05" maxlength="18"
+                                                       style="text-transform: uppercase;">
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">NSS (Número de Seguro Social)</label>
+                                                <input type="text" class="form-control" id="nss" 
+                                                       placeholder="Ej: 12345678901" maxlength="11">
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="row">
+                                            <div class="col-md-4 mb-3">
+                                                <label class="form-label">Día de Nacimiento *</label>
+                                                <select class="form-select" id="dia_nacimiento" required>
+                                                    <option value="">Día</option>
+                                                    <!-- Generate days 1-31 -->
+                                                    <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+                                                    <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+                                                    <option value="7">7</option><option value="8">8</option><option value="9">9</option>
+                                                    <option value="10">10</option><option value="11">11</option><option value="12">12</option>
+                                                    <option value="13">13</option><option value="14">14</option><option value="15">15</option>
+                                                    <option value="16">16</option><option value="17">17</option><option value="18">18</option>
+                                                    <option value="19">19</option><option value="20">20</option><option value="21">21</option>
+                                                    <option value="22">22</option><option value="23">23</option><option value="24">24</option>
+                                                    <option value="25">25</option><option value="26">26</option><option value="27">27</option>
+                                                    <option value="28">28</option><option value="29">29</option><option value="30">30</option>
+                                                    <option value="31">31</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-4 mb-3">
+                                                <label class="form-label">Mes de Nacimiento *</label>
+                                                <select class="form-select" id="mes_nacimiento" required>
+                                                    <option value="">Mes</option>
+                                                    <option value="1">Enero</option><option value="2">Febrero</option><option value="3">Marzo</option>
+                                                    <option value="4">Abril</option><option value="5">Mayo</option><option value="6">Junio</option>
+                                                    <option value="7">Julio</option><option value="8">Agosto</option><option value="9">Septiembre</option>
+                                                    <option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-4 mb-3">
+                                                <label class="form-label">Año de Nacimiento *</label>
+                                                <input type="number" class="form-control" id="año_nacimiento" 
+                                                       placeholder="Ej: 1965" min="1930" max="2010" required
+                                                       oninput="calcularEdadActual()">
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">Edad Actual</label>
+                                                <input type="number" class="form-control" id="edad_actual" 
+                                                       placeholder="Se calcula automáticamente" readonly>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">Edad de Jubilación Deseada *</label>
+                                                <input type="number" class="form-control" id="edad_jubilacion" 
+                                                       placeholder="Ej: 65" min="60" max="70" required>
+                                                <div class="form-text">Recomendado: 65 años (100% + 11% extra)</div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
+
+                                <!-- Datos IMSS -->
+                                <div class="card mb-4">
+                                    <div class="card-header bg-light">
+                                        <h6 class="mb-0"><i class="fas fa-briefcase me-2"></i>Información IMSS</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label class="form-label">
+                                                <i class="fas fa-calendar-alt me-2"></i>Semanas Cotizadas Actuales *
+                                            </label>
+                                            <input type="number" class="form-control" id="semanas_cotizadas" 
+                                                   placeholder="Ej: 758" min="500" required>
+                                            <div class="form-text">Mínimo 500 semanas para pensión. Lo encuentras en tu reporte IMSS.</div>
+                                        </div>
 
                                 <div class="mb-3">
                                     <label class="form-label">
@@ -130,11 +235,13 @@
                                                placeholder="Ej: 222.02" step="0.01" min="0" required>
                                         <span class="input-group-text">por día</span>
                                     </div>
-                                    <div class="form-text">
-                                        <i class="fas fa-info-circle me-1"></i>
-                                        Este es tu <strong>salario diario promedio</strong> con el que has cotizado hasta ahora.
-                                        <br>
-                                        <small class="text-muted">Lo puedes encontrar en tu reporte de semanas cotizadas del IMSS</small>
+                                            <div class="form-text">
+                                                <i class="fas fa-info-circle me-1"></i>
+                                                Este es tu <strong>salario diario promedio</strong> con el que has cotizado hasta ahora.
+                                                <br>
+                                                <small class="text-muted">Lo encuentras en tu reporte de semanas cotizadas del IMSS</small>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -188,36 +295,7 @@
                                     </div>
                                 </div>
 
-                                <div class="mb-3">
-                                    <label class="form-label">
-                                        <i class="fas fa-user-clock me-2"></i>¿A qué edad te quieres pensionar?
-                                    </label>
-                                    <select class="form-select" id="edad_pension" required onchange="mostrarPenalizacion()">
-                                        <option value="">Seleccionar...</option>
-                                        <option value="60">60 años (Solo 75% de la pensión)</option>
-                                        <option value="61">61 años (Solo 80% de la pensión)</option>
-                                        <option value="62">62 años (Solo 85% de la pensión)</option>
-                                        <option value="63">63 años (Solo 90% de la pensión)</option>
-                                        <option value="64">64 años (Solo 95% de la pensión)</option>
-                                        <option value="65" selected>65 años (100% + 11% extra por vejez) ⭐</option>
-                                    </select>
-                                    
-                                    <div id="penalizacion-warning" class="alert alert-warning mt-2" style="display: none;">
-                                        <i class="fas fa-exclamation-triangle me-1"></i>
-                                        <strong>¡Importante!</strong> <span id="penalizacion-texto"></span>
-                                        <br><small>Considera esperar hasta los 65 para obtener la pensión completa + 11% extra.</small>
-                                    </div>
-                                    
-                                    <div id="vejez-bonus" class="alert alert-success mt-2" style="display: none;">
-                                        <i class="fas fa-star me-1"></i>
-                                        <strong>¡Excelente decisión!</strong> A los 65 años recibes el 100% de tu pensión + 11% adicional por vejez.
-                                    </div>
-                                </div>
-
-                                <div id="tiempo-disponible" class="alert alert-info mt-2" style="display: none;">
-                                    <i class="fas fa-clock me-1"></i>
-                                    <strong>Tiempo disponible:</strong> <span id="tiempo-texto"></span>
-                                </div>
+                                        <!-- Age warnings and time calculation will be handled automatically by the new personal data section -->
 
                                 <!-- Situación Familiar -->
                                 <div class="card mb-3">
@@ -670,7 +748,75 @@
             }
         }
         
+        // Calcular edad actual automáticamente
+        function calcularEdadActual() {
+            const dia = parseInt(document.getElementById('dia_nacimiento').value);
+            const mes = parseInt(document.getElementById('mes_nacimiento').value);
+            const año = parseInt(document.getElementById('año_nacimiento').value);
+            
+            if (dia && mes && año) {
+                const hoy = new Date();
+                const fechaNacimiento = new Date(año, mes - 1, dia); // mes - 1 porque Date usa 0-indexado
+                
+                let edad = hoy.getFullYear() - fechaNacimiento.getFullYear();
+                const diferenciaMes = hoy.getMonth() - fechaNacimiento.getMonth();
+                
+                if (diferenciaMes < 0 || (diferenciaMes === 0 && hoy.getDate() < fechaNacimiento.getDate())) {
+                    edad--;
+                }
+                
+                document.getElementById('edad_actual').value = edad;
+                
+                // Auto-sugerir edad de jubilación recomendada
+                const edadJubilacion = document.getElementById('edad_jubilacion');
+                if (!edadJubilacion.value && edad > 0) {
+                    if (edad >= 65) {
+                        edadJubilacion.value = 65;
+                    } else if (edad >= 60) {
+                        edadJubilacion.value = 65; // Siempre recomendar 65
+                    }
+                }
+                
+                calcularTiempoDisponible();
+            }
+        }
+        
+        // Formatear RFC y CURP en mayúsculas
+        function formatearRFC() {
+            const rfc = document.getElementById('rfc');
+            rfc.value = rfc.value.toUpperCase();
+        }
+        
+        function formatearCURP() {
+            const curp = document.getElementById('curp');
+            curp.value = curp.value.toUpperCase();
+        }
+        
         // Calcular tiempo disponible para Modalidad 40
+        function calcularTiempoDisponible() {
+            const edadActual = parseInt(document.getElementById('edad_actual').value);
+            const edadJubilacion = parseInt(document.getElementById('edad_jubilacion').value);
+            
+            if (edadActual && edadJubilacion) {
+                const añosDisponibles = edadJubilacion - edadActual;
+                
+                // Mostrar advertencias según el tiempo disponible
+                if (añosDisponibles <= 0) {
+                    mostrarAlerta('Ya estás en edad de pensión. Consulta directamente con IMSS.', 'danger');
+                } else if (añosDisponibles <= 5) {
+                    mostrarAlerta(`¡URGENTE! Solo tienes ${añosDisponibles} años. Debes iniciar Modalidad 40 YA.`, 'warning');
+                } else {
+                    mostrarAlerta(`Tienes ${añosDisponibles} años disponibles. Puedes planear con calma.`, 'info');
+                }
+            }
+        }
+        
+        function mostrarAlerta(mensaje, tipo) {
+            // You can implement this to show alerts in a designated area
+            console.log(`${tipo.toUpperCase()}: ${mensaje}`);
+        }
+
+        // Calcular tiempo disponible para Modalidad 40 (función original)
         function calcularTiempoRestante() {
             const edadActual = parseInt(document.getElementById('edad_actual').value);
             const edadPension = parseInt(document.getElementById('edad_pension').value);
@@ -753,13 +899,27 @@
             document.querySelector('.loading').style.display = 'block';
             document.querySelector('button[type="submit"]').style.display = 'none';
             
-            // Recopilar datos
+            // Recopilar datos personales
             const formData = {
+                // Datos personales
+                nombre: document.getElementById('nombre').value,
+                apellido_paterno: document.getElementById('apellido_paterno').value,
+                apellido_materno: document.getElementById('apellido_materno').value,
+                rfc: document.getElementById('rfc').value,
+                curp: document.getElementById('curp').value,
+                nss: document.getElementById('nss').value,
+                dia_nacimiento: document.getElementById('dia_nacimiento').value,
+                mes_nacimiento: document.getElementById('mes_nacimiento').value,
+                año_nacimiento: document.getElementById('año_nacimiento').value,
+                
+                // Datos IMSS y cálculo
                 semanas_cotizadas: document.getElementById('semanas_cotizadas').value,
                 sdp_actual: document.getElementById('sdp_actual').value,
                 sbc_modalidad40: document.getElementById('sbc_modalidad40').value,
                 edad_actual: document.getElementById('edad_actual').value,
-                edad_pension: document.getElementById('edad_pension').value,
+                edad_pension: document.getElementById('edad_jubilacion').value, // Note: changed to edad_jubilacion
+                
+                // Situación familiar
                 tiene_esposa: document.getElementById('tiene_esposa').checked,
                 num_hijos: document.getElementById('num_hijos').value,
                 tiene_padres: document.getElementById('tiene_padres').checked,
@@ -1054,6 +1214,60 @@
                 loadingPdf.style.display = 'none';
             }
         }
+        
+        // Event listeners for new personal data fields
+        document.addEventListener('DOMContentLoaded', function() {
+            // RFC and CURP auto-formatting
+            document.getElementById('rfc').addEventListener('input', formatearRFC);
+            document.getElementById('curp').addEventListener('input', formatearCURP);
+            
+            // Age calculation triggers
+            document.getElementById('dia_nacimiento').addEventListener('change', calcularEdadActual);
+            document.getElementById('mes_nacimiento').addEventListener('change', calcularEdadActual);
+            document.getElementById('año_nacimiento').addEventListener('input', calcularEdadActual);
+            
+            // Retirement age change trigger
+            document.getElementById('edad_jubilacion').addEventListener('change', calcularTiempoDisponible);
+            
+            // NSS formatting (only numbers)
+            document.getElementById('nss').addEventListener('input', function(e) {
+                e.target.value = e.target.value.replace(/\D/g, '');
+            });
+            
+            // Form validation enhancement
+            const form = document.getElementById('calculadoraForm');
+            form.addEventListener('submit', function(e) {
+                // Validate required personal fields
+                const requiredFields = ['nombre', 'apellido_paterno', 'dia_nacimiento', 'mes_nacimiento', 'año_nacimiento', 'edad_jubilacion'];
+                
+                for (let field of requiredFields) {
+                    const element = document.getElementById(field);
+                    if (!element.value) {
+                        e.preventDefault();
+                        element.focus();
+                        alert(`Por favor completa el campo: ${element.previousElementSibling.textContent}`);
+                        return;
+                    }
+                }
+                
+                // Validate age makes sense
+                const edadActual = parseInt(document.getElementById('edad_actual').value);
+                const edadJubilacion = parseInt(document.getElementById('edad_jubilacion').value);
+                
+                if (edadJubilacion <= edadActual) {
+                    e.preventDefault();
+                    alert('La edad de jubilación debe ser mayor a tu edad actual.');
+                    document.getElementById('edad_jubilacion').focus();
+                    return;
+                }
+                
+                if (edadActual < 18 || edadActual > 80) {
+                    e.preventDefault();
+                    alert('La edad actual debe estar entre 18 y 80 años.');
+                    return;
+                }
+            });
+        });
     </script>
 </body>
 </html>

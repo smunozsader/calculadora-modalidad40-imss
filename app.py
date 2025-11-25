@@ -40,15 +40,15 @@ def calcular():
         # Obtener datos del formulario
         data = request.get_json()
         
-        # Validar datos requeridos
-        required_fields = [
+        # Validar datos requeridos para cálculo
+        required_calc_fields = [
             'semanas_cotizadas', 'sdp_actual', 'sbc_modalidad40', 'edad_actual', 'edad_pension'
         ]
         
-        for field in required_fields:
+        for field in required_calc_fields:
             if field not in data or data[field] == '':
                 return jsonify({
-                    'error': f'Campo requerido faltante: {field}'
+                    'error': f'Campo requerido para cálculo: {field}'
                 }), 400
         
         # Convertir a números
@@ -186,6 +186,21 @@ def generar_reporte_pdf():
     """Generar reporte personalizado en PDF"""
     try:
         data = request.get_json()
+        
+        # Validar datos personales requeridos para PDF
+        required_personal_fields = ['nombre', 'apellido_paterno']
+        
+        for field in required_personal_fields:
+            if field not in data or not data[field].strip():
+                return jsonify({
+                    'error': f'Campo personal requerido para PDF: {field}'
+                }), 400
+        
+        # Validar que tenemos los resultados del cálculo
+        if 'resultados' not in data:
+            return jsonify({
+                'error': 'Se requieren los resultados del cálculo para generar el PDF'
+            }), 400
         
         # Crear buffer para PDF
         buffer = io.BytesIO()

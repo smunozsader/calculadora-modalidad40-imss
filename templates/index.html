@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora Modalidad 40 IMSS - Ley 73</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .hero-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 4rem 0;
+        }
+        .card {
+            border: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+        .result-card {
+            border-left: 5px solid #28a745;
+        }
+        .investment-card {
+            border-left: 5px solid #007bff;
+        }
+        .roi-card {
+            border-left: 5px solid #ffc107;
+        }
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+        }
+        .loading {
+            display: none;
+        }
+        .comparison-table {
+            font-size: 0.9rem;
+        }
+        .highlight-number {
+            font-weight: bold;
+            color: #28a745;
+        }
+        .warning-text {
+            color: #856404;
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 0.75rem;
+            border-radius: 0.375rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background: #343a40;">
+        <div class="container">
+            <a class="navbar-brand" href="#"><i class="fas fa-calculator me-2"></i>Calculadora Modalidad 40</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#calculadora">Calculadora</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/info">Información</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container text-center">
+            <h1 class="display-4 fw-bold mb-4">
+                <i class="fas fa-coins me-3"></i>Calculadora Modalidad 40 IMSS
+            </h1>
+            <p class="lead mb-4">
+                Calcula tu pensión bajo Ley 73 con tablas variables oficiales. 
+                Análisis completo de inversión y ROI.
+            </p>
+            <div class="row justify-content-center">
+                <div class="col-md-8">
+                    <div class="alert alert-light" role="alert">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        <strong>Simple y Preciso:</strong> Solo necesitas saber cuántas semanas has cotizado y con qué salario quieres pensionarte
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Calculadora -->
+    <section id="calculadora" class="py-5">
+        <div class="container">
+            <div class="row">
+                <!-- Formulario -->
+                <div class="col-lg-5">
+                    <div class="card">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0"><i class="fas fa-edit me-2"></i>Datos de Tu Situación</h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="calculadoraForm">
+                                <!-- Datos Básicos -->
+                                <div class="mb-3">
+                                    <label class="form-label">
+                                        <i class="fas fa-calendar-alt me-2"></i>Semanas Cotizadas Actuales
+                                    </label>
+                                    <input type="number" class="form-control" id="semanas_cotizadas" 
+                                           placeholder="Ej: 758" min="500" required>
+                                    <div class="form-text">Mínimo 500 semanas para pensión</div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">
+                                        <i class="fas fa-money-bill me-2"></i>¿Cuál es tu salario promedio actual?
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" class="form-control" id="sdp_actual" 
+                                               placeholder="Ej: 222.02" step="0.01" min="0" required>
+                                        <span class="input-group-text">por día</span>
+                                    </div>
+                                    <div class="form-text">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Este es tu <strong>salario diario promedio</strong> con el que has cotizado hasta ahora.
+                                        <br>
+                                        <small class="text-muted">Lo puedes encontrar en tu reporte de semanas cotizadas del IMSS</small>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">
+                                        <i class="fas fa-chart-line me-2"></i>¿Con qué salario quieres cotizar?
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" class="form-control" id="sbc_modalidad40" 
+                                               placeholder="Ej: 2464.58" step="0.01" min="0" required
+                                               oninput="calcularPagoEstimado()">
+                                        <span class="input-group-text">por día</span>
+                                    </div>
+                                    <div class="form-text mb-2">
+                                        <i class="fas fa-lightbulb text-warning me-1"></i>
+                                        <strong>Esto es el salario diario</strong> sobre el cual quieres que se calcule tu futura pensión.
+                                        <br>
+                                        <small class="text-muted">
+                                            • Mínimo: tu salario actual ($222 aprox)
+                                            • Máximo legal: $2,828.50/día 
+                                            • <strong>Recomendado:</strong> $2,464.58/día (mejor costo-beneficio)
+                                        </small>
+                                    </div>
+                                    <div class="d-grid gap-2 mb-2">
+                                        <button type="button" class="btn btn-outline-success btn-sm" 
+                                                onclick="setTopeMaximo()">
+                                            <i class="fas fa-star me-1"></i>Usar Salario Recomendado ($2,464.58/día)
+                                        </button>
+                                    </div>
+                                    <div id="pago-estimado" class="alert alert-light mt-2" style="display: none;">
+                                        <i class="fas fa-calculator me-1"></i>
+                                        <strong>Tu pago mensual al IMSS sería:</strong> 
+                                        <span class="text-primary fs-5 fw-bold" id="pago-estimado-valor">$0</span>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">
+                                        <i class="fas fa-user me-2"></i>Edad de Pensión
+                                    </label>
+                                    <select class="form-select" id="edad_pension" required>
+                                        <option value="">Seleccionar...</option>
+                                        <option value="60">60 años (Cesantía)</option>
+                                        <option value="61">61 años (Cesantía)</option>
+                                        <option value="62">62 años (Cesantía)</option>
+                                        <option value="63">63 años (Cesantía)</option>
+                                        <option value="64">64 años (Cesantía)</option>
+                                        <option value="65" selected>65 años (Vejez - Recomendado)</option>
+                                    </select>
+                                </div>
+
+                                <!-- Situación Familiar -->
+                                <div class="card mb-3">
+                                    <div class="card-header">
+                                        <small class="text-muted">Situación Familiar (Asignaciones)</small>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="form-check mb-2">
+                                            <input class="form-check-input" type="checkbox" id="tiene_esposa">
+                                            <label class="form-check-label" for="tiene_esposa">
+                                                Tiene esposa/concubina (+15%)
+                                            </label>
+                                        </div>
+                                        
+                                        <div class="mb-2">
+                                            <label class="form-label">Hijos menores/estudiando</label>
+                                            <select class="form-select form-select-sm" id="num_hijos">
+                                                <option value="0">0 hijos</option>
+                                                <option value="1">1 hijo (+10%)</option>
+                                                <option value="2">2 hijos (+20%)</option>
+                                                <option value="3">3 hijos (+30%)</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="tiene_padres">
+                                            <label class="form-check-label" for="tiene_padres">
+                                                Padres dependientes (+20%)
+                                            </label>
+                                            <div class="form-text">Solo si no hay esposa ni hijos</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Botones -->
+                                <div class="d-grid gap-2">
+                                    <button type="submit" class="btn btn-primary btn-lg">
+                                        <i class="fas fa-calculator me-2"></i>Calcular Pensión
+                                    </button>
+                                    <div class="loading text-center">
+                                        <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                                        Calculando...
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Resultados -->
+                <div class="col-lg-7">
+                    <div id="resultados" style="display: none;">
+                        <!-- Comparación Principal -->
+                        <div class="card result-card">
+                            <div class="card-header bg-success text-white">
+                                <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Comparación de Pensiones</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row text-center">
+                                    <div class="col-6">
+                                        <h6 class="text-muted">SIN Modalidad 40</h6>
+                                        <h3 class="text-danger" id="pension-sin">$0</h3>
+                                        <small class="text-muted">por mes</small>
+                                    </div>
+                                    <div class="col-6">
+                                        <h6 class="text-muted">CON Modalidad 40</h6>
+                                        <h3 class="text-success" id="pension-con">$0</h3>
+                                        <small class="text-muted">por mes</small>
+                                    </div>
+                                </div>
+                                <hr>
+                                <div class="text-center">
+                                    <h6>Incremento Mensual</h6>
+                                    <h4 class="highlight-number" id="diferencia-mensual">$0</h4>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Pago Mensual IMSS -->
+                        <div class="card" style="border-left: 5px solid #dc3545;">
+                            <div class="card-header bg-danger text-white">
+                                <h5 class="mb-0"><i class="fas fa-receipt me-2"></i>Tu Pago Mensual al IMSS</h5>
+                            </div>
+                            <div class="card-body text-center">
+                                <h6 class="text-muted">Recibo mensual que pagarás en banco:</h6>
+                                <h2 class="text-danger mb-3" id="pago-mensual-imss">$0</h2>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <small class="text-muted">Tasa 2025</small>
+                                        <div class="fw-bold">13.347%</div>
+                                    </div>
+                                    <div class="col-6">
+                                        <small class="text-muted">Incrementa cada año</small>
+                                        <div class="fw-bold text-warning">Hasta 18%</div>
+                                    </div>
+                                </div>
+                                <hr>
+                                <div class="alert alert-warning mb-0" role="alert">
+                                    <i class="fas fa-exclamation-triangle me-1"></i>
+                                    <small><strong>Importante:</strong> Este monto se paga mensualmente durante 5 años al IMSS</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Análisis Detallado -->
+                        <div class="card investment-card">
+                            <div class="card-header bg-info text-white">
+                                <h5 class="mb-0"><i class="fas fa-coins me-2"></i>Análisis de Inversión</h5>
+                            </div>
+                            <div class="card-body">
+                                <table class="table table-sm comparison-table">
+                                    <tr>
+                                        <td><strong>Inversión Total (5 años):</strong></td>
+                                        <td class="text-end" id="inversion-total">$0</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Incremento Anual Pensión:</strong></td>
+                                        <td class="text-end" id="incremento-anual">$0</td>
+                                    </tr>
+                                    <tr class="table-warning">
+                                        <td><strong>ROI Anual:</strong></td>
+                                        <td class="text-end"><span class="highlight-number" id="roi-anual">0%</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Recuperación:</strong></td>
+                                        <td class="text-end" id="recuperacion">0 años</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Calendario de Pagos Anuales -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="mb-0">
+                                    <button class="btn btn-link p-0 text-decoration-none" type="button" 
+                                            data-bs-toggle="collapse" data-bs-target="#calendario-pagos">
+                                        <i class="fas fa-calendar-alt me-2"></i>Calendario de Pagos (5 años)
+                                        <i class="fas fa-chevron-down ms-2"></i>
+                                    </button>
+                                </h6>
+                            </div>
+                            <div class="collapse" id="calendario-pagos">
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-striped table-sm">
+                                            <thead>
+                                                <tr>
+                                                    <th>Año</th>
+                                                    <th>Tasa IMSS</th>
+                                                    <th>Pago Mensual</th>
+                                                    <th>Total Año</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="tabla-pagos-anuales">
+                                                <!-- Se llena dinámicamente -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div class="alert alert-info mb-0">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        <small>
+                                            <strong>Nota:</strong> Las tasas aumentan cada año según calendario oficial IMSS. 
+                                            Puedes pagar mensualmente en cualquier banco con tu recibo IMSS.
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Detalles Técnicos -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="mb-0">
+                                    <button class="btn btn-link p-0 text-decoration-none" type="button" 
+                                            data-bs-toggle="collapse" data-bs-target="#detalles-tecnicos">
+                                        <i class="fas fa-cog me-2"></i>Detalles Técnicos
+                                        <i class="fas fa-chevron-down ms-2"></i>
+                                    </button>
+                                </h6>
+                            </div>
+                            <div class="collapse" id="detalles-tecnicos">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <h6>Sin Modalidad 40</h6>
+                                            <ul class="list-unstyled small">
+                                                <li>SDP: $<span id="sdp-sin">0</span> (<span id="uma-sin">0</span> UMAs)</li>
+                                                <li>Cuantía básica: <span id="cuantia-sin">0%</span></li>
+                                                <li>Incremento: <span id="incremento-sin">0%</span></li>
+                                            </ul>
+                                        </div>
+                                        <div class="col-6">
+                                            <h6>Con Modalidad 40</h6>
+                                            <ul class="list-unstyled small">
+                                                <li>SDP: $<span id="sdp-con">0</span> (<span id="uma-con">0</span> UMAs)</li>
+                                                <li>Cuantía básica: <span id="cuantia-con">0%</span></li>
+                                                <li>Incremento: <span id="incremento-con">0%</span></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Disclaimer -->
+                        <div class="warning-text mt-3">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Importante:</strong> Este cálculo es estimativo basado en la Ley del Seguro Social vigente. 
+                            Los resultados pueden variar según cambios normativos. Consulta con un especialista en seguridad social.
+                        </div>
+                    </div>
+
+                    <!-- Mensaje inicial -->
+                    <div id="mensaje-inicial" class="text-center">
+                        <div class="card">
+                            <div class="card-body">
+                                <i class="fas fa-calculator text-muted" style="font-size: 4rem;"></i>
+                                <h5 class="mt-3 text-muted">Completa el formulario para calcular tu pensión</h5>
+                                <p class="text-muted">Ingresa tus datos y descubre el potencial de la Modalidad 40</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Función para establecer tope máximo
+        function setTopeMaximo() {
+            document.getElementById('sbc_modalidad40').value = '2464.58';
+            calcularPagoEstimado();
+        }
+        
+        // Calcular pago estimado en tiempo real
+        function calcularPagoEstimado() {
+            const sbc = parseFloat(document.getElementById('sbc_modalidad40').value);
+            const pagoEstimadoDiv = document.getElementById('pago-estimado');
+            const pagoEstimadoValor = document.getElementById('pago-estimado-valor');
+            
+            if (sbc && sbc > 0) {
+                // Calcular con tasa 2025 (13.347%)
+                const sbcMensual = sbc * 30.4; // Días promedio por mes
+                const pagoMensual = sbcMensual * 0.13347; // Tasa 2025
+                
+                pagoEstimadoValor.textContent = '$' + formatearNumero(Math.round(pagoMensual));
+                pagoEstimadoDiv.style.display = 'block';
+                
+                // Agregar contexto según el monto
+                let contexto = '';
+                if (pagoMensual > 15000) {
+                    pagoEstimadoDiv.className = 'alert alert-warning mt-2';
+                    pagoEstimadoValor.className = 'text-warning fw-bold fs-5';
+                    contexto = ' (Alto - considera si puedes pagarlo 5 años)';
+                } else if (pagoMensual > 8000) {
+                    pagoEstimadoDiv.className = 'alert alert-success mt-2';
+                    pagoEstimadoValor.className = 'text-success fw-bold fs-5';
+                    contexto = ' (Recomendado - buen balance costo/beneficio)';
+                } else {
+                    pagoEstimadoDiv.className = 'alert alert-light mt-2';
+                    pagoEstimadoValor.className = 'text-primary fw-bold fs-5';
+                    contexto = ' (Accesible - considera si puedes subir un poco)';
+                }
+                
+                // Agregar el contexto después del valor
+                const valorElement = document.getElementById('pago-estimado-valor');
+                valorElement.innerHTML = '$' + formatearNumero(Math.round(pagoMensual)) + 
+                    '<small class="fw-normal">' + contexto + '</small>';
+                
+            } else {
+                pagoEstimadoDiv.style.display = 'none';
+            }
+        }
+
+        // Formatear números con comas
+        function formatearNumero(numero) {
+            return numero.toLocaleString('es-MX', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            });
+        }
+
+        // Manejar envío del formulario
+        document.getElementById('calculadoraForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Mostrar loading
+            document.querySelector('.loading').style.display = 'block';
+            document.querySelector('button[type="submit"]').style.display = 'none';
+            
+            // Recopilar datos
+            const formData = {
+                semanas_cotizadas: document.getElementById('semanas_cotizadas').value,
+                sdp_actual: document.getElementById('sdp_actual').value,
+                sbc_modalidad40: document.getElementById('sbc_modalidad40').value,
+                edad_pension: document.getElementById('edad_pension').value,
+                tiene_esposa: document.getElementById('tiene_esposa').checked,
+                num_hijos: document.getElementById('num_hijos').value,
+                tiene_padres: document.getElementById('tiene_padres').checked,
+                año_inicio: 2025
+            };
+            
+            try {
+                // Enviar petición
+                const response = await fetch('/calcular', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const resultado = await response.json();
+                
+                if (response.ok && resultado.success) {
+                    // Mostrar resultados
+                    mostrarResultados(resultado);
+                } else {
+                    // Mostrar error
+                    alert('Error: ' + resultado.error);
+                }
+            } catch (error) {
+                alert('Error de conexión: ' + error.message);
+            } finally {
+                // Ocultar loading
+                document.querySelector('.loading').style.display = 'none';
+                document.querySelector('button[type="submit"]').style.display = 'block';
+            }
+        });
+        
+        function mostrarResultados(resultado) {
+            // Ocultar mensaje inicial y mostrar resultados
+            document.getElementById('mensaje-inicial').style.display = 'none';
+            document.getElementById('resultados').style.display = 'block';
+            
+            // Pensiones principales
+            document.getElementById('pension-sin').textContent = '$' + formatearNumero(resultado.sin_modalidad40.pension_total);
+            document.getElementById('pension-con').textContent = '$' + formatearNumero(resultado.con_modalidad40.pension_total);
+            document.getElementById('diferencia-mensual').textContent = '$' + formatearNumero(resultado.analisis_roi.diferencia_mensual);
+            
+            // Pago mensual IMSS (lo más importante)
+            document.getElementById('pago-mensual-imss').textContent = '$' + formatearNumero(resultado.inversion.promedio_mensual);
+            
+            // Análisis de inversión
+            document.getElementById('inversion-total').textContent = '$' + formatearNumero(resultado.inversion.total_5_años);
+            document.getElementById('incremento-anual').textContent = '$' + formatearNumero(resultado.analisis_roi.diferencia_anual);
+            document.getElementById('roi-anual').textContent = resultado.analisis_roi.roi_anual + '%';
+            document.getElementById('recuperacion').textContent = resultado.analisis_roi.años_recuperacion + ' años';
+            
+            // Detalles técnicos
+            document.getElementById('sdp-sin').textContent = formatearNumero(resultado.sin_modalidad40.pension_total / 12 * resultado.sin_modalidad40.cuantia_pct / 100 / 365 * 12);
+            document.getElementById('uma-sin').textContent = resultado.sin_modalidad40.multiple_uma;
+            document.getElementById('cuantia-sin').textContent = resultado.sin_modalidad40.cuantia_pct + '%';
+            document.getElementById('incremento-sin').textContent = resultado.sin_modalidad40.incremento_pct + '%';
+            
+            document.getElementById('sdp-con').textContent = formatearNumero(resultado.con_modalidad40.pension_total / 12 * resultado.con_modalidad40.cuantia_pct / 100 / 365 * 12);
+            document.getElementById('uma-con').textContent = resultado.con_modalidad40.multiple_uma;
+            document.getElementById('cuantia-con').textContent = resultado.con_modalidad40.cuantia_pct + '%';
+            document.getElementById('incremento-con').textContent = resultado.con_modalidad40.incremento_pct + '%';
+            
+            // Llenar tabla de pagos anuales
+            const tablaPagos = document.getElementById('tabla-pagos-anuales');
+            tablaPagos.innerHTML = '';
+            
+            if (resultado.inversion.desglose_anual) {
+                Object.keys(resultado.inversion.desglose_anual).forEach(año => {
+                    const datos = resultado.inversion.desglose_anual[año];
+                    const fila = tablaPagos.insertRow();
+                    
+                    fila.innerHTML = `
+                        <td><strong>${año}</strong></td>
+                        <td>${datos.tasa_pct}%</td>
+                        <td class="text-success"><strong>$${formatearNumero(datos.costo_mensual)}</strong></td>
+                        <td>$${formatearNumero(datos.costo_anual)}</td>
+                    `;
+                });
+            }
+            
+            // Scroll a resultados
+            document.getElementById('resultados').scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>

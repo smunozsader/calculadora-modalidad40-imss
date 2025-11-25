@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Información Modalidad 40 - IMSS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .hero-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 3rem 0;
+        }
+        .info-card {
+            border: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+        .requirement-item {
+            border-left: 4px solid #28a745;
+            padding-left: 1rem;
+            margin-bottom: 1rem;
+        }
+        .warning-box {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 1rem;
+            border-radius: 0.375rem;
+        }
+        .success-box {
+            background: #d1edff;
+            border: 1px solid #bee5eb;
+            padding: 1rem;
+            border-radius: 0.375rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background: #343a40;">
+        <div class="container">
+            <a class="navbar-brand" href="/"><i class="fas fa-calculator me-2"></i>Calculadora Modalidad 40</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Calculadora</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/info">Información</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container text-center">
+            <h1 class="display-5 fw-bold mb-4">
+                <i class="fas fa-info-circle me-3"></i>¿Qué es la Modalidad 40?
+            </h1>
+            <p class="lead">
+                Continuación Voluntaria en el Régimen Obligatorio del IMSS
+            </p>
+        </div>
+    </section>
+
+    <!-- Contenido -->
+    <div class="container py-5">
+        <div class="row">
+            <!-- Definición -->
+            <div class="col-12">
+                <div class="card info-card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="fas fa-book me-2"></i>¿Qué es la Modalidad 40?</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="lead">
+                            La <strong>Modalidad 40</strong> es un programa del IMSS que permite a trabajadores 
+                            dados de baja continuar cotizando de manera voluntaria para mejorar su pensión.
+                        </p>
+                        <div class="success-box">
+                            <h6><i class="fas fa-star text-warning"></i> Beneficios Principales:</h6>
+                            <ul class="mb-0">
+                                <li>Incrementar el Salario Base de Cotización (SBC)</li>
+                                <li>Aumentar las semanas cotizadas</li>
+                                <li>Obtener una pensión significativamente mayor</li>
+                                <li>Mantener vigencia de derechos ante el IMSS</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Requisitos -->
+            <div class="col-lg-6">
+                <div class="card info-card">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0"><i class="fas fa-check-circle me-2"></i>Requisitos para Ingresar</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="requirement-item">
+                            <strong>Mínimo 52 semanas cotizadas</strong><br>
+                            <small class="text-muted">En los últimos 5 años anteriores a la baja</small>
+                        </div>
+                        
+                        <div class="requirement-item">
+                            <strong>Máximo 5 años de baja</strong><br>
+                            <small class="text-muted">Desde la fecha de baja del régimen obligatorio</small>
+                        </div>
+                        
+                        <div class="requirement-item">
+                            <strong>No estar dado de alta</strong><br>
+                            <small class="text-muted">En el régimen obligatorio del IMSS</small>
+                        </div>
+                        
+                        <div class="requirement-item">
+                            <strong>Presentar documentación</strong><br>
+                            <small class="text-muted">Identificación, CURP, comprobante de domicilio</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Costos -->
+            <div class="col-lg-6">
+                <div class="card info-card">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="mb-0"><i class="fas fa-money-bill-wave me-2"></i>Costos 2025</h5>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Tasa de cotización:</strong> <span class="text-danger">13.347%</span> sobre el SBC elegido</p>
+                        
+                        <h6>Incremento Anual de Tasas:</h6>
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Año</th>
+                                    <th>Tasa</th>
+                                    <th>Ejemplo $2,465</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>2025</td>
+                                    <td>13.347%</td>
+                                    <td>$9,943/mes</td>
+                                </tr>
+                                <tr>
+                                    <td>2026</td>
+                                    <td>14.438%</td>
+                                    <td>$10,756/mes</td>
+                                </tr>
+                                <tr>
+                                    <td>2027</td>
+                                    <td>15.528%</td>
+                                    <td>$11,569/mes</td>
+                                </tr>
+                                <tr>
+                                    <td>2028</td>
+                                    <td>16.619%</td>
+                                    <td>$12,381/mes</td>
+                                </tr>
+                                <tr>
+                                    <td>2029</td>
+                                    <td>17.709%</td>
+                                    <td>$13,194/mes</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        
+                        <div class="warning-box">
+                            <small>
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <strong>Importante:</strong> Las tasas aumentan cada año según calendario oficial IMSS
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Límites y Topes -->
+            <div class="col-lg-6">
+                <div class="card info-card">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0"><i class="fas fa-ruler me-2"></i>Límites y Topes 2025</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-striped">
+                            <tr>
+                                <td><strong>UMA Diaria:</strong></td>
+                                <td>$113.14</td>
+                            </tr>
+                            <tr>
+                                <td><strong>UMA Mensual:</strong></td>
+                                <td>$3,439.46</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Tope Máximo (25 UMAs):</strong></td>
+                                <td>$2,828.50 diario</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Tope Máximo Mensual:</strong></td>
+                                <td>$85,986.60</td>
+                            </tr>
+                            <tr>
+                                <td><strong>SBC Recomendado:</strong></td>
+                                <td>$2,464.58 diario</td>
+                            </tr>
+                        </table>
+                        
+                        <div class="success-box">
+                            <small>
+                                <i class="fas fa-lightbulb"></i>
+                                <strong>Recomendación:</strong> Usa el tope máximo práctico de $2,464.58 diario 
+                                para optimizar la relación costo-beneficio
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Proceso de Cálculo -->
+            <div class="col-lg-6">
+                <div class="card info-card">
+                    <div class="card-header bg-secondary text-white">
+                        <h5 class="mb-0"><i class="fas fa-cogs me-2"></i>Cómo se Calcula la Pensión</h5>
+                    </div>
+                    <div class="card-body">
+                        <h6>Fórmula Ley 73 (Tablas Variables):</h6>
+                        
+                        <div class="alert alert-info mb-3">
+                            <h6><i class="fas fa-question-circle"></i> ¿Qué significa "salario para cotizar"?</h6>
+                            <p class="mb-1">
+                                Es el salario diario que eliges para calcular tu futura pensión. 
+                                <strong>Entre más alto, mayor será tu pensión.</strong>
+                            </p>
+                            <ul class="mb-0 small">
+                                <li><strong>Ejemplo:</strong> Si eliges $2,000/día, pagarás ~$8,000/mes y tu pensión será ~$25,000/mes</li>
+                                <li><strong>Límite:</strong> Máximo $2,828.50/día (pero recomendamos $2,464.58 por costo-beneficio)</li>
+                                <li><strong>Flexibilidad:</strong> Tú decides el nivel según tu capacidad de pago</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <strong>1. Cuantía Básica:</strong><br>
+                            <code>Salario_Elegido × % Variable × 365 días</code><br>
+                            <small class="text-muted">El % varía según el nivel de salario que elijas</small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <strong>2. Incremento por Años:</strong><br>
+                            <code>SDP × % Variable × 365 × años_adicionales</code><br>
+                            <small class="text-muted">Por cada año completo después de 500 semanas</small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <strong>3. Asignaciones Familiares:</strong><br>
+                            <ul class="mb-0">
+                                <li>Esposa/Concubina: +15%</li>
+                                <li>Cada hijo menor: +10%</li>
+                                <li>Padres (sin viuda): +20%</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="warning-box">
+                            <small>
+                                <i class="fas fa-info-circle"></i>
+                                Los porcentajes NO son fijos. Varían según el nivel SDP/UMA en 22 rangos diferentes.
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ejemplo Práctico -->
+            <div class="col-12">
+                <div class="card info-card">
+                    <div class="card-header bg-dark text-white">
+                        <h5 class="mb-0"><i class="fas fa-calculator me-2"></i>Ejemplo Práctico</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <h6>Situación Inicial:</h6>
+                                <ul>
+                                    <li>758 semanas cotizadas</li>
+                                    <li>SDP actual: $222.02</li>
+                                    <li>Edad: 65 años</li>
+                                    <li>Con esposa</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <h6>Sin Modalidad 40:</h6>
+                                <ul>
+                                    <li>SDP: $222.02 (1.96 UMAs)</li>
+                                    <li>Cuantía básica: 42.67%</li>
+                                    <li>Pensión base: $6,580/mes</li>
+                                    <li><strong>Total: $7,567/mes</strong></li>
+                                </ul>
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <h6>Con Modalidad 40:</h6>
+                                <ul>
+                                    <li>SDP nuevo: $2,464.58 (21.8 UMAs)</li>
+                                    <li>Cuantía básica: 13.00%</li>
+                                    <li>Pensión base: $29,165/mes</li>
+                                    <li><strong>Total: $33,540/mes</strong></li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <hr>
+                        
+                        <div class="row text-center">
+                            <div class="col-md-3">
+                                <h6 class="text-muted">Inversión 5 años</h6>
+                                <h4 class="text-primary">$700,068</h4>
+                            </div>
+                            <div class="col-md-3">
+                                <h6 class="text-muted">Incremento Mensual</h6>
+                                <h4 class="text-success">$25,973</h4>
+                            </div>
+                            <div class="col-md-3">
+                                <h6 class="text-muted">ROI Anual</h6>
+                                <h4 class="text-warning">44.6%</h4>
+                            </div>
+                            <div class="col-md-3">
+                                <h6 class="text-muted">Recuperación</h6>
+                                <h4 class="text-info">2.2 años</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Disclaimer -->
+            <div class="col-12">
+                <div class="warning-box">
+                    <h6><i class="fas fa-exclamation-triangle text-warning"></i> Aviso Legal</h6>
+                    <p class="mb-0">
+                        Esta calculadora es una herramienta estimativa basada en la normativa vigente del IMSS. 
+                        Los cálculos pueden variar según cambios en la legislación, interpretaciones particulares 
+                        o situaciones específicas no contempladas. Se recomienda consultar con un especialista 
+                        en seguridad social y verificar directamente con el IMSS antes de tomar decisiones financieras.
+                    </p>
+                </div>
+            </div>
+
+            <!-- CTA -->
+            <div class="col-12 text-center">
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <h5>¿Listo para calcular tu pensión?</h5>
+                        <p class="text-muted">Usa nuestra calculadora para descubrir el potencial de la Modalidad 40 en tu caso específico</p>
+                        <a href="/" class="btn btn-primary btn-lg">
+                            <i class="fas fa-calculator me-2"></i>Calcular Mi Pensión
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -174,17 +174,49 @@
 
                                 <div class="mb-3">
                                     <label class="form-label">
-                                        <i class="fas fa-user me-2"></i>Edad de Pensión
+                                        <i class="fas fa-calendar-check me-2"></i>¿Cuántos años tienes actualmente?
                                     </label>
-                                    <select class="form-select" id="edad_pension" required>
+                                    <div class="input-group">
+                                        <input type="number" class="form-control" id="edad_actual" 
+                                               placeholder="Ej: 58" min="50" max="70" required
+                                               oninput="calcularTiempoRestante()">
+                                        <span class="input-group-text">años</span>
+                                    </div>
+                                    <div class="form-text">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Necesario para calcular cuánto tiempo tienes para cotizar en Modalidad 40
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">
+                                        <i class="fas fa-user-clock me-2"></i>¿A qué edad te quieres pensionar?
+                                    </label>
+                                    <select class="form-select" id="edad_pension" required onchange="mostrarPenalizacion()">
                                         <option value="">Seleccionar...</option>
-                                        <option value="60">60 años (Cesantía)</option>
-                                        <option value="61">61 años (Cesantía)</option>
-                                        <option value="62">62 años (Cesantía)</option>
-                                        <option value="63">63 años (Cesantía)</option>
-                                        <option value="64">64 años (Cesantía)</option>
-                                        <option value="65" selected>65 años (Vejez - Recomendado)</option>
+                                        <option value="60">60 años (Solo 75% de la pensión)</option>
+                                        <option value="61">61 años (Solo 80% de la pensión)</option>
+                                        <option value="62">62 años (Solo 85% de la pensión)</option>
+                                        <option value="63">63 años (Solo 90% de la pensión)</option>
+                                        <option value="64">64 años (Solo 95% de la pensión)</option>
+                                        <option value="65" selected>65 años (100% + 11% extra por vejez) ⭐</option>
                                     </select>
+                                    
+                                    <div id="penalizacion-warning" class="alert alert-warning mt-2" style="display: none;">
+                                        <i class="fas fa-exclamation-triangle me-1"></i>
+                                        <strong>¡Importante!</strong> <span id="penalizacion-texto"></span>
+                                        <br><small>Considera esperar hasta los 65 para obtener la pensión completa + 11% extra.</small>
+                                    </div>
+                                    
+                                    <div id="vejez-bonus" class="alert alert-success mt-2" style="display: none;">
+                                        <i class="fas fa-star me-1"></i>
+                                        <strong>¡Excelente decisión!</strong> A los 65 años recibes el 100% de tu pensión + 11% adicional por vejez.
+                                    </div>
+                                </div>
+
+                                <div id="tiempo-disponible" class="alert alert-info mt-2" style="display: none;">
+                                    <i class="fas fa-clock me-1"></i>
+                                    <strong>Tiempo disponible:</strong> <span id="tiempo-texto"></span>
                                 </div>
 
                                 <!-- Situación Familiar -->
@@ -238,6 +270,30 @@
                 <!-- Resultados -->
                 <div class="col-lg-7">
                     <div id="resultados" style="display: none;">
+                        <!-- Información de Edad -->
+                        <div id="info-edad" class="card" style="border-left: 5px solid #6f42c1; display: none;">
+                            <div class="card-header" style="background-color: #6f42c1; color: white;">
+                                <h5 class="mb-0"><i class="fas fa-user-clock me-2"></i>Impacto de tu Edad</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row text-center">
+                                    <div class="col-4">
+                                        <h6 class="text-muted">Edad Actual</h6>
+                                        <h4 id="edad-actual-display">0 años</h4>
+                                    </div>
+                                    <div class="col-4">
+                                        <h6 class="text-muted">Edad Pensión</h6>
+                                        <h4 id="edad-pension-display">0 años</h4>
+                                    </div>
+                                    <div class="col-4">
+                                        <h6 class="text-muted">Tiempo Disponible</h6>
+                                        <h4 id="tiempo-disponible-display">0 años</h4>
+                                    </div>
+                                </div>
+                                <div id="factor-edad-info" class="mt-3" style="display: none;"></div>
+                            </div>
+                        </div>
+
                         <!-- Comparación Principal -->
                         <div class="card result-card">
                             <div class="card-header bg-success text-white">
@@ -257,14 +313,18 @@
                                     </div>
                                 </div>
                                 <hr>
-                                <div class="text-center">
-                                    <h6>Incremento Mensual</h6>
-                                    <h4 class="highlight-number" id="diferencia-mensual">$0</h4>
-                                </div>
-                            </div>
+                        <div class="text-center">
+                            <h6>Incremento Mensual</h6>
+                            <h4 class="highlight-number" id="diferencia-mensual">$0</h4>
                         </div>
-
-                        <!-- Pago Mensual IMSS -->
+                        <hr>
+                        <div class="text-center">
+                            <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalReporte">
+                                <i class="fas fa-file-pdf me-2"></i>Generar Reporte Personalizado PDF
+                            </button>
+                        </div>
+                    </div>
+                </div>                        <!-- Pago Mensual IMSS -->
                         <div class="card" style="border-left: 5px solid #dc3545;">
                             <div class="card-header bg-danger text-white">
                                 <h5 class="mb-0"><i class="fas fa-receipt me-2"></i>Tu Pago Mensual al IMSS</h5>
@@ -414,8 +474,166 @@
         </div>
     </section>
 
+    <!-- Modal para Reporte Personalizado -->
+    <div class="modal fade" id="modalReporte" tabindex="-1" aria-labelledby="modalReporteLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="modalReporteLabel">
+                        <i class="fas fa-file-pdf me-2"></i>Generar Reporte Personalizado
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formReporte">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Reporte Profesional:</strong> Incluirá tus datos personales, análisis completo de escenarios 
+                            y recomendaciones personalizadas para tu situación.
+                        </div>
+
+                        <h6 class="text-primary mb-3">
+                            <i class="fas fa-user me-2"></i>Datos Personales
+                        </h6>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Nombre(s) *</label>
+                                <input type="text" class="form-control" id="nombre" required 
+                                       placeholder="Ej: Juan Carlos">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Apellido Paterno *</label>
+                                <input type="text" class="form-control" id="apellido_paterno" required 
+                                       placeholder="Ej: Pérez">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Apellido Materno</label>
+                                <input type="text" class="form-control" id="apellido_materno" 
+                                       placeholder="Ej: González">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">RFC</label>
+                                <input type="text" class="form-control" id="rfc" 
+                                       placeholder="Ej: PEGJ800101ABC" maxlength="13">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">CURP</label>
+                                <input type="text" class="form-control" id="curp" 
+                                       placeholder="Ej: PEGJ800101HDFRNS09" maxlength="18">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">NSS (Número de Seguro Social)</label>
+                                <input type="text" class="form-control" id="nss" 
+                                       placeholder="Ej: 12345678901" maxlength="11">
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <h6 class="text-primary mb-3">
+                            <i class="fas fa-chart-line me-2"></i>Escenarios a Incluir
+                        </h6>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="incluir_actual" checked disabled>
+                                    <label class="form-check-label" for="incluir_actual">
+                                        <strong>Situación Actual</strong> (sin Modalidad 40)
+                                    </label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="incluir_modalidad40" checked disabled>
+                                    <label class="form-check-label" for="incluir_modalidad40">
+                                        <strong>Con Modalidad 40</strong> (escenario calculado)
+                                    </label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="incluir_alternativo">
+                                    <label class="form-check-label" for="incluir_alternativo">
+                                        <strong>Escenario Alternativo</strong>
+                                        <small class="text-muted d-block">Diferente nivel de cotización</small>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="incluir_edades">
+                                    <label class="form-check-label" for="incluir_edades">
+                                        <strong>Comparativa por Edades</strong>
+                                        <small class="text-muted d-block">60, 62, 65 años</small>
+                                    </label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="incluir_calendario">
+                                    <label class="form-check-label" for="incluir_calendario">
+                                        <strong>Calendario de Pagos</strong>
+                                        <small class="text-muted d-block">Desglose año por año</small>
+                                    </label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="incluir_recomendaciones" checked>
+                                    <label class="form-check-label" for="incluir_recomendaciones">
+                                        <strong>Recomendaciones Personalizadas</strong>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="escenario-alternativo" class="alert alert-light mt-3" style="display: none;">
+                            <h6>Configurar Escenario Alternativo:</h6>
+                            <div class="row">
+                                <div class="col-6">
+                                    <label class="form-label">SBC Alternativo (diario)</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" class="form-control" id="sbc_alternativo" 
+                                               placeholder="1500.00" step="0.01">
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label">Años de cotización</label>
+                                    <select class="form-select" id="años_alternativo">
+                                        <option value="3">3 años</option>
+                                        <option value="4">4 años</option>
+                                        <option value="5" selected>5 años</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Nota Importante:</strong> Este reporte es informativo y basado en la normativa vigente. 
+                            Consulta siempre con un especialista antes de tomar decisiones financieras.
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>Cancelar
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="generarReportePDF()">
+                        <i class="fas fa-file-pdf me-2"></i>Generar PDF
+                        <div class="spinner-border spinner-border-sm ms-2" id="loading-pdf" style="display: none;"></div>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
         // Función para establecer tope máximo
         function setTopeMaximo() {
@@ -423,6 +641,62 @@
             calcularPagoEstimado();
         }
         
+        // Mostrar penalización por edad
+        function mostrarPenalizacion() {
+            const edadPension = parseInt(document.getElementById('edad_pension').value);
+            const penalizacionDiv = document.getElementById('penalizacion-warning');
+            const vejezDiv = document.getElementById('vejez-bonus');
+            const penalizacionTexto = document.getElementById('penalizacion-texto');
+            
+            if (edadPension && edadPension < 65) {
+                const porcentajes = {
+                    60: 75,
+                    61: 80,
+                    62: 85,
+                    63: 90,
+                    64: 95
+                };
+                
+                const porcentaje = porcentajes[edadPension];
+                penalizacionTexto.textContent = `Solo recibirás el ${porcentaje}% de tu pensión calculada.`;
+                penalizacionDiv.style.display = 'block';
+                vejezDiv.style.display = 'none';
+            } else if (edadPension === 65) {
+                penalizacionDiv.style.display = 'none';
+                vejezDiv.style.display = 'block';
+            } else {
+                penalizacionDiv.style.display = 'none';
+                vejezDiv.style.display = 'none';
+            }
+        }
+        
+        // Calcular tiempo disponible para Modalidad 40
+        function calcularTiempoRestante() {
+            const edadActual = parseInt(document.getElementById('edad_actual').value);
+            const edadPension = parseInt(document.getElementById('edad_pension').value);
+            const tiempoDiv = document.getElementById('tiempo-disponible');
+            const tiempoTexto = document.getElementById('tiempo-texto');
+            
+            if (edadActual && edadPension) {
+                const añosDisponibles = edadPension - edadActual;
+                
+                if (añosDisponibles > 5) {
+                    tiempoTexto.innerHTML = `Tienes ${añosDisponibles} años hasta pensionarte. Modalidad 40 dura 5 años, así que puedes empezar en ${5-añosDisponibles} años más.`;
+                    tiempoDiv.className = 'alert alert-info mt-2';
+                } else if (añosDisponibles >= 1) {
+                    tiempoTexto.innerHTML = `Tienes ${añosDisponibles} años hasta pensionarte. ${añosDisponibles < 5 ? '⚠️ ¡URGENTE! Debes empezar Modalidad 40 YA.' : 'Tiempo perfecto para Modalidad 40.'}`;
+                    tiempoDiv.className = añosDisponibles < 5 ? 'alert alert-danger mt-2' : 'alert alert-success mt-2';
+                } else {
+                    tiempoTexto.innerHTML = '⚠️ Ya estás en edad de pensión. Consulta otras opciones con el IMSS.';
+                    tiempoDiv.className = 'alert alert-danger mt-2';
+                }
+                
+                tiempoDiv.style.display = 'block';
+            } else {
+                tiempoDiv.style.display = 'none';
+            }
+        }
+
         // Calcular pago estimado en tiempo real
         function calcularPagoEstimado() {
             const sbc = parseFloat(document.getElementById('sbc_modalidad40').value);
@@ -484,6 +758,7 @@
                 semanas_cotizadas: document.getElementById('semanas_cotizadas').value,
                 sdp_actual: document.getElementById('sdp_actual').value,
                 sbc_modalidad40: document.getElementById('sbc_modalidad40').value,
+                edad_actual: document.getElementById('edad_actual').value,
                 edad_pension: document.getElementById('edad_pension').value,
                 tiene_esposa: document.getElementById('tiene_esposa').checked,
                 num_hijos: document.getElementById('num_hijos').value,
@@ -523,6 +798,36 @@
             // Ocultar mensaje inicial y mostrar resultados
             document.getElementById('mensaje-inicial').style.display = 'none';
             document.getElementById('resultados').style.display = 'block';
+            
+            // Información de edad
+            if (resultado.edad_info) {
+                document.getElementById('info-edad').style.display = 'block';
+                document.getElementById('edad-actual-display').textContent = resultado.edad_info.edad_actual + ' años';
+                document.getElementById('edad-pension-display').textContent = resultado.edad_info.edad_pension + ' años';
+                document.getElementById('tiempo-disponible-display').textContent = resultado.edad_info.años_disponibles + ' años';
+                
+                const factorInfo = document.getElementById('factor-edad-info');
+                if (resultado.edad_info.penalizacion_pct > 0) {
+                    factorInfo.innerHTML = `
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-1"></i>
+                            <strong>Penalización por edad:</strong> Recibirás solo el ${100 - resultado.edad_info.penalizacion_pct}% 
+                            de tu pensión por jubilarte antes de los 65 años.
+                        </div>
+                    `;
+                    factorInfo.style.display = 'block';
+                } else if (resultado.edad_info.tiene_incremento_vejez) {
+                    factorInfo.innerHTML = `
+                        <div class="alert alert-success">
+                            <i class="fas fa-star me-1"></i>
+                            <strong>Bonus por vejez:</strong> Recibirás 11% adicional por pensionarte a los 65 años o más.
+                        </div>
+                    `;
+                    factorInfo.style.display = 'block';
+                } else {
+                    factorInfo.style.display = 'none';
+                }
+            }
             
             // Pensiones principales
             document.getElementById('pension-sin').textContent = '$' + formatearNumero(resultado.sin_modalidad40.pension_total);
@@ -569,6 +874,185 @@
             
             // Scroll a resultados
             document.getElementById('resultados').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Manejar checkbox de escenario alternativo
+        document.getElementById('incluir_alternativo').addEventListener('change', function() {
+            const escenarioDiv = document.getElementById('escenario-alternativo');
+            escenarioDiv.style.display = this.checked ? 'block' : 'none';
+        });
+
+        // Variable global para almacenar resultados del cálculo
+        let resultadosCalculados = null;
+
+        // Actualizar variable cuando se calculan resultados
+        function mostrarResultados(resultado) {
+            resultadosCalculados = resultado; // Guardar para el PDF
+            
+            // ... resto del código existente ...
+            // (el código anterior de mostrarResultados se mantiene igual)
+            
+            // Ocultar mensaje inicial y mostrar resultados
+            document.getElementById('mensaje-inicial').style.display = 'none';
+            document.getElementById('resultados').style.display = 'block';
+            
+            // Información de edad
+            if (resultado.edad_info) {
+                document.getElementById('info-edad').style.display = 'block';
+                document.getElementById('edad-actual-display').textContent = resultado.edad_info.edad_actual + ' años';
+                document.getElementById('edad-pension-display').textContent = resultado.edad_info.edad_pension + ' años';
+                document.getElementById('tiempo-disponible-display').textContent = resultado.edad_info.años_disponibles + ' años';
+                
+                const factorInfo = document.getElementById('factor-edad-info');
+                if (resultado.edad_info.penalizacion_pct > 0) {
+                    factorInfo.innerHTML = `
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-1"></i>
+                            <strong>Penalización por edad:</strong> Recibirás solo el ${100 - resultado.edad_info.penalizacion_pct}% 
+                            de tu pensión por jubilarte antes de los 65 años.
+                        </div>
+                    `;
+                    factorInfo.style.display = 'block';
+                } else if (resultado.edad_info.tiene_incremento_vejez) {
+                    factorInfo.innerHTML = `
+                        <div class="alert alert-success">
+                            <i class="fas fa-star me-1"></i>
+                            <strong>Bonus por vejez:</strong> Recibirás 11% adicional por pensionarte a los 65 años o más.
+                        </div>
+                    `;
+                    factorInfo.style.display = 'block';
+                } else {
+                    factorInfo.style.display = 'none';
+                }
+            }
+            
+            // Pensiones principales
+            document.getElementById('pension-sin').textContent = '$' + formatearNumero(resultado.sin_modalidad40.pension_total);
+            document.getElementById('pension-con').textContent = '$' + formatearNumero(resultado.con_modalidad40.pension_total);
+            document.getElementById('diferencia-mensual').textContent = '$' + formatearNumero(resultado.analisis_roi.diferencia_mensual);
+            
+            // Pago mensual IMSS (lo más importante)
+            document.getElementById('pago-mensual-imss').textContent = '$' + formatearNumero(resultado.inversion.promedio_mensual);
+            
+            // Análisis de inversión
+            document.getElementById('inversion-total').textContent = '$' + formatearNumero(resultado.inversion.total_5_años);
+            document.getElementById('incremento-anual').textContent = '$' + formatearNumero(resultado.analisis_roi.diferencia_anual);
+            document.getElementById('roi-anual').textContent = resultado.analisis_roi.roi_anual + '%';
+            document.getElementById('recuperacion').textContent = resultado.analisis_roi.años_recuperacion + ' años';
+            
+            // Detalles técnicos
+            document.getElementById('sdp-sin').textContent = formatearNumero(resultado.sin_modalidad40.pension_total / 12 * resultado.sin_modalidad40.cuantia_pct / 100 / 365 * 12);
+            document.getElementById('uma-sin').textContent = resultado.sin_modalidad40.multiple_uma;
+            document.getElementById('cuantia-sin').textContent = resultado.sin_modalidad40.cuantia_pct + '%';
+            document.getElementById('incremento-sin').textContent = resultado.sin_modalidad40.incremento_pct + '%';
+            
+            document.getElementById('sdp-con').textContent = formatearNumero(resultado.con_modalidad40.pension_total / 12 * resultado.con_modalidad40.cuantia_pct / 100 / 365 * 12);
+            document.getElementById('uma-con').textContent = resultado.con_modalidad40.multiple_uma;
+            document.getElementById('cuantia-con').textContent = resultado.con_modalidad40.cuantia_pct + '%';
+            document.getElementById('incremento-con').textContent = resultado.con_modalidad40.incremento_pct + '%';
+            
+            // Llenar tabla de pagos anuales
+            const tablaPagos = document.getElementById('tabla-pagos-anuales');
+            tablaPagos.innerHTML = '';
+            
+            if (resultado.inversion.desglose_anual) {
+                Object.keys(resultado.inversion.desglose_anual).forEach(año => {
+                    const datos = resultado.inversion.desglose_anual[año];
+                    const fila = tablaPagos.insertRow();
+                    
+                    fila.innerHTML = `
+                        <td><strong>${año}</strong></td>
+                        <td>${datos.tasa_pct}%</td>
+                        <td class="text-success"><strong>$${formatearNumero(datos.costo_mensual)}</strong></td>
+                        <td>$${formatearNumero(datos.costo_anual)}</td>
+                    `;
+                });
+            }
+            
+            // Scroll a resultados
+            document.getElementById('resultados').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Función para generar reporte PDF
+        async function generarReportePDF() {
+            if (!resultadosCalculados) {
+                alert('Primero calcula tu pensión antes de generar el reporte.');
+                return;
+            }
+
+            // Validar datos requeridos
+            const nombre = document.getElementById('nombre').value.trim();
+            const apellidoPaterno = document.getElementById('apellido_paterno').value.trim();
+            
+            if (!nombre || !apellidoPaterno) {
+                alert('Por favor completa al menos el nombre y apellido paterno.');
+                return;
+            }
+
+            // Mostrar loading
+            const loadingPdf = document.getElementById('loading-pdf');
+            loadingPdf.style.display = 'inline-block';
+
+            try {
+                // Recopilar datos del formulario
+                const datosReporte = {
+                    // Datos personales
+                    nombre: nombre,
+                    apellido_paterno: apellidoPaterno,
+                    apellido_materno: document.getElementById('apellido_materno').value.trim(),
+                    rfc: document.getElementById('rfc').value.trim(),
+                    curp: document.getElementById('curp').value.trim(),
+                    nss: document.getElementById('nss').value.trim(),
+                    
+                    // Opciones del reporte
+                    incluir_alternativo: document.getElementById('incluir_alternativo').checked,
+                    incluir_edades: document.getElementById('incluir_edades').checked,
+                    incluir_calendario: document.getElementById('incluir_calendario').checked,
+                    incluir_recomendaciones: document.getElementById('incluir_recomendaciones').checked,
+                    
+                    // Escenario alternativo si está seleccionado
+                    sbc_alternativo: document.getElementById('sbc_alternativo').value,
+                    años_alternativo: document.getElementById('años_alternativo').value,
+                    
+                    // Datos calculados
+                    resultados: resultadosCalculados
+                };
+
+                // Enviar a backend para generar PDF
+                const response = await fetch('/generar-reporte-pdf', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(datosReporte)
+                });
+
+                if (response.ok) {
+                    // Descargar PDF
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `Reporte_Modalidad40_${nombre}_${apellidoPaterno}.pdf`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                    
+                    // Cerrar modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('modalReporte'));
+                    modal.hide();
+                    
+                    alert('¡Reporte PDF generado exitosamente!');
+                } else {
+                    throw new Error('Error al generar el reporte');
+                }
+                
+            } catch (error) {
+                alert('Error al generar el reporte: ' + error.message);
+            } finally {
+                loadingPdf.style.display = 'none';
+            }
         }
     </script>
 </body>

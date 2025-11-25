@@ -1,0 +1,193 @@
+\documentclass[12pt,a4paper]{article}
+
+% =================================================================
+% CONFIGURACIÓN ÓPTIMA DE PAQUETES PARA LATEX - MIKTEX 24.1
+% =================================================================
+
+% ---- CODIFICACIÓN Y FUENTES MODERNAS ----
+\usepackage[T1]{fontenc}          % Codificación de fuentes mejorada
+\usepackage[utf8]{inputenc}       % Entrada UTF-8
+\usepackage{lmodern}              % Fuentes Latin Modern (más claras)
+\usepackage{microtype}            % Tipografía mejorada (espaciado)
+
+% ---- IDIOMA Y LOCALIZACIÓN ----
+\usepackage[spanish,es-tabla,es-nodecimaldot]{babel}  % Español optimizado
+
+% ---- GEOMETRÍA Y DISEÑO ----
+\usepackage[margin=2.5cm,headheight=15pt]{geometry}   % Página + header fix
+\usepackage{fancyhdr}             % Headers/footers personalizados
+\usepackage{titlesec}             % Formato de títulos
+\usepackage{setspace}             % Espaciado entre líneas
+
+% ---- MATEMÁTICAS ----
+\usepackage{amsmath,amsfonts,amssymb}  % Paquetes matemáticos estándar
+\usepackage{mathtools}            % Extensiones matemáticas
+
+% ---- TABLAS Y GRÁFICOS ----
+\usepackage{booktabs}             % Tablas profesionales
+\usepackage{longtable}            % Tablas largas
+\usepackage{array}                % Columnas mejoradas
+\usepackage{multirow}             % Celdas multi-fila
+\usepackage{float}                % Control de posición [H]
+\usepackage{graphicx}             % Imágenes
+\usepackage{xcolor}               % Colores avanzados
+
+% ---- CAJAS Y DECORACIÓN ----
+\usepackage{tcolorbox}            % Cajas coloreadas
+\tcbuselibrary{skins,breakable}   % Extensiones de tcolorbox
+
+% ---- ÍCONOS Y SÍMBOLOS ----
+\usepackage{fontawesome5}         % Íconos FontAwesome5
+
+% ---- HIPERVÍNCULOS ----
+\usepackage[hidelinks,unicode]{hyperref}  % Enlaces sin bordes, UTF-8
+
+% ---- LISTAS MEJORADAS ----
+\usepackage{enumitem}             % Control de listas
+
+% ---- CONFIGURACIÓN DE COLORES ----
+\definecolor{primary}{RGB}{41,98,255}
+\definecolor{success}{RGB}{34,197,94}
+\definecolor{warning}{RGB}{251,146,60}
+\definecolor{danger}{RGB}{239,68,68}
+\definecolor{info}{RGB}{59,130,246}
+
+% ---- CONFIGURACIÓN DE PÁGINA ----
+\geometry{
+    margin=2.5cm,
+    headheight=15pt,      % Elimina warnings de fancyhdr
+    headsep=10pt,
+    footskip=25pt
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\textbf{Análisis Modalidad 40 IMSS}}
+\fancyhead[R]{\textbf{MUMS640728UQ0}}
+\fancyfoot[C]{\thepage}
+
+% ---- CONFIGURACIÓN DE TÍTULOS ----
+\titleformat{\section}
+    {\Large\bfseries\color{primary}}
+    {\thesection}{1em}{}
+    
+\titleformat{\subsection}
+    {\large\bfseries\color{primary}}
+    {\thesubsection}{1em}{}
+
+% ---- CONFIGURACIÓN DE HIPERVÍNCULOS ----
+\hypersetup{
+    colorlinks=false,      % Sin colores en enlaces (más profesional)
+    hidelinks=true,        % Enlaces invisible
+    unicode=true,          % Soporte UTF-8 completo
+    pdfborder={0 0 0},
+    pdftitle={Análisis Modalidad 40 IMSS - MUMS640728UQ0},
+    pdfauthor={Análisis Actuarial Especializado},
+    pdfsubject={Pensiones IMSS},
+    pdfkeywords={Modalidad 40, IMSS, Pensión, Ley 73}
+}
+
+% ---- CONFIGURACIÓN DE MICROTYPE ----
+\microtypesetup{
+    activate={true,nocompatibility},
+    final,
+    tracking=true,
+    kerning=true,
+    spacing=true,
+    factor=1100
+}
+
+% ---- ESPACIADO MEJORADO ----
+\setlength{\parindent}{0pt}       % Sin sangría
+\setlength{\parskip}{6pt}         % Espaciado entre párrafos
+\setstretch{1.1}                  % Interlineado 110%
+
+% ---- CONFIGURACIÓN DE LISTAS ----
+\setlist[itemize]{
+    itemsep=2pt,
+    parsep=0pt,
+    topsep=4pt,
+    partopsep=0pt
+}
+
+\setlist[enumerate]{
+    itemsep=2pt,
+    parsep=0pt,
+    topsep=4pt,
+    partopsep=0pt
+}
+
+% ---- CONFIGURACIÓN DE TCOLORBOX ----
+\tcbset{
+    enhanced,
+    breakable,
+    colback=white,
+    colframe=primary,
+    boxrule=1pt,
+    arc=2pt,
+    left=8pt,
+    right=8pt,
+    top=6pt,
+    bottom=6pt,
+    fonttitle=\bfseries,
+    title filled=true
+}
+
+% =================================================================
+% COMANDOS PERSONALIZADOS ÚTILES
+% =================================================================
+
+% Comando para cajas de alerta rápidas
+\newcommand{\alertbox}[2][warning]{
+    \begin{tcolorbox}[colback=#1!10,colframe=#1,title=\textbf{IMPORTANTE}]
+        #2
+    \end{tcolorbox}
+}
+
+% Comando para números con formato
+\newcommand{\money}[1]{\textbf{\$#1}}
+
+% Comando para porcentajes destacados
+\newcommand{\percent}[1]{\textbf{#1\%}}
+
+\begin{document}
+
+% =================================================================
+% CONTENIDO DE EJEMPLO
+% =================================================================
+
+\title{\textbf{Plantilla Optimizada LaTeX}}
+\author{Análisis Actuarial Especializado}
+\date{25 de noviembre de 2025}
+\maketitle
+
+\section{Ejemplo de Uso}
+
+\alertbox{Esta es una plantilla optimizada para evitar errores de compilación LaTeX.}
+
+\subsection{Características Principales}
+
+\begin{itemize}
+    \item \textbf{Sin warnings:} Headers configurados correctamente
+    \item \textbf{Fuentes modernas:} Latin Modern + microtype
+    \item \textbf{UTF-8 completo:} Soporte total de caracteres especiales
+    \item \textbf{Profesional:} Enlaces invisibles, tipografía mejorada
+\end{itemize}
+
+\subsection{Ejemplo de Tabla}
+
+\begin{table}[H]
+\centering
+\caption{Comparativa de Opciones}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Opción} & \textbf{Inversión} & \textbf{ROI} \\
+\midrule
+Básica & \money{352,000} & \percent{71.7} \\
+Recomendada & \money{440,000} & \percent{71.7} \\
+Tope & \money{617,348} & \percent{65.8} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\end{document}

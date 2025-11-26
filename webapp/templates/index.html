@@ -116,6 +116,12 @@
                         <i class="fas fa-check-circle text-success me-2"></i>
                         <strong>Simple y Preciso:</strong> Solo necesitas saber cuántas semanas has cotizado y con qué salario quieres pensionarte
                     </div>
+                    
+                    <!-- Deployment Status Indicator -->
+                    <div id="deployment-status" class="alert alert-warning" role="alert" style="display: none;">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Aviso del Sistema:</strong> <span id="status-message">El sistema está en proceso de actualización. Los cálculos pueden fallar temporalmente.</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1158,12 +1164,16 @@
             }
             
             try {
-                // Enviar petición
+                // Enviar petición con fallback handling
                 console.log('🚀 Enviando petición a /calcular...');
+                console.log('🌐 Current URL:', window.location.href);
+                console.log('📡 Target endpoint:', window.location.origin + '/calcular');
+                
                 const response = await fetch('/calcular', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Accept': 'application/json'
                     },
                     body: JSON.stringify(formData)
                 });
@@ -1191,35 +1201,68 @@
                     return;
                 }
                 
-                // Verificar si hay un error explícito en la respuesta
-                if (resultado.error) {
-                    console.error('💥 Error explícito del servidor:', resultado.error);
+                // ENHANCED ERROR DETECTION AND DEBUGGING
+                console.group('🔍 DETAILED RESPONSE ANALYSIS');
+                console.log('HTTP Status:', response.status, response.statusText);
+                console.log('Response OK:', response.ok);
+                console.log('Response Headers:', Object.fromEntries(response.headers.entries()));
+                console.log('Response Type:', typeof resultado);
+                console.log('Response Keys:', resultado && typeof resultado === 'object' ? Object.keys(resultado) : 'Not an object');
+                console.log('Full Response:', resultado);
+                console.groupEnd();
+                
+                // Check for Railway-specific error responses
+                if (resultado && resultado.status === 'error' && resultado.code === 404) {
+                    console.error('🚨 RAILWAY DEPLOYMENT ERROR: Application not found');
+                    alert(`🚨 DEPLOYMENT ERROR: The application is not accessible on Railway.\n\nError: ${resultado.message}\nRequest ID: ${resultado.request_id}\n\nThis is a deployment issue, not a calculation problem. The development team has been notified.`);
+                    return;
+                }
+                
+                // Check for explicit error in response
+                if (resultado && resultado.error) {
+                    console.error('💥 Server Error:', resultado.error);
                     alert('Error en el cálculo: ' + resultado.error);
                     return;
                 }
                 
-                // Verificar si tenemos datos de éxito
-                if (response.ok && (resultado.success || resultado.sin_modalidad40)) {
-                    console.log('🎉 Cálculo exitoso, mostrando resultados...');
-                    // Mostrar resultados
+                // Check for successful response patterns
+                if (response.ok && resultado && (resultado.success === true || resultado.sin_modalidad40)) {
+                    console.log('🎉 Calculation successful, showing results...');
                     mostrarResultados(resultado);
-                } else {
-                    // Debugging completo del error
-                    console.group('🚨 ANÁLISIS DETALLADO DEL ERROR');
-                    console.log('response.ok:', response.ok);
-                    console.log('response.status:', response.status);
-                    console.log('resultado.success:', resultado?.success);
-                    console.log('resultado.error:', resultado?.error);
-                    console.log('resultado tiene sin_modalidad40:', !!resultado?.sin_modalidad40);
-                    console.log('resultado tiene con_modalidad40:', !!resultado?.con_modalidad40);
-                    console.log('Objeto resultado completo:', resultado);
-                    console.groupEnd();
-                    
-                    // Mostrar error con más detalle
-                    const errorMsg = resultado?.error || `Error HTTP ${response.status}: ${response.statusText} - Sin mensaje de error específico`;
-                    console.error('💥 Error del servidor:', errorMsg);
-                    alert('Error en el cálculo: ' + errorMsg);
+                    return;
                 }
+                
+                // Enhanced error reporting for failed responses
+                console.group('🚨 COMPREHENSIVE ERROR ANALYSIS');
+                console.log('❌ Response Details:');
+                console.log('  - Status Code:', response.status);
+                console.log('  - Status Text:', response.statusText || 'No status text');
+                console.log('  - Response OK:', response.ok);
+                console.log('  - Content Type:', response.headers.get('content-type'));
+                console.log('❌ Response Content:');
+                console.log('  - Type:', typeof resultado);
+                console.log('  - Is Object:', resultado && typeof resultado === 'object');
+                console.log('  - Has Error:', resultado?.error ? 'YES' : 'NO');
+                console.log('  - Has Success:', resultado?.success ? 'YES' : 'NO');
+                console.log('  - Has Calculation Data:', resultado?.sin_modalidad40 ? 'YES' : 'NO');
+                console.log('  - Full Content:', resultado);
+                console.groupEnd();
+                
+                // Provide detailed error message to user
+                let errorMsg = 'Error desconocido en el cálculo';
+                
+                if (!response.ok) {
+                    errorMsg = `Error de conexión HTTP ${response.status}: ${response.statusText || 'Sin descripción'}`;
+                } else if (resultado?.error) {
+                    errorMsg = `Error del servidor: ${resultado.error}`;
+                } else if (!resultado || typeof resultado !== 'object') {
+                    errorMsg = `Error: El servidor devolvió una respuesta inválida (${typeof resultado})`;
+                } else {
+                    errorMsg = `Error: El servidor devolvió datos incompletos. Estado HTTP ${response.status}`;
+                }
+                
+                console.error('💥 Final Error Message:', errorMsg);
+                alert(`Error en el cálculo: ${errorMsg}\n\nDetalles técnicos disponibles en la consola del navegador (F12).`)
             } catch (error) {
                 console.error('🔥 Error de conexión/red:', error);
                 console.error('Stack trace:', error.stack);
@@ -1607,8 +1650,37 @@
             if (modalNube) modalNube.hide();
         }
         
+        // Check system status on page load
+        async function checkSystemStatus() {
+            try {
+                console.log('🔍 Checking system status...');
+                const response = await fetch('/test', { method: 'GET', timeout: 10000 });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('✅ System is online:', data);
+                    // Hide the deployment warning if system is working
+                    document.getElementById('deployment-status').style.display = 'none';
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            } catch (error) {
+                console.warn('⚠️ System status check failed:', error);
+                // Show deployment warning
+                const statusDiv = document.getElementById('deployment-status');
+                const messageSpan = document.getElementById('status-message');
+                
+                statusDiv.style.display = 'block';
+                statusDiv.className = 'alert alert-warning';
+                messageSpan.textContent = 'Sistema en mantenimiento. Los cálculos pueden fallar. El equipo técnico está trabajando en una solución.';
+            }
+        }
+        
         // Event listeners for new personal data fields
         document.addEventListener('DOMContentLoaded', function() {
+            // Check system status immediately
+            checkSystemStatus();
+            
             // RFC and CURP auto-formatting
             document.getElementById('rfc').addEventListener('input', formatearRFC);
             document.getElementById('curp').addEventListener('input', formatearCURP);

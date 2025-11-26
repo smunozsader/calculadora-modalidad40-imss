@@ -451,49 +451,19 @@
                                 <h5 class="mb-0"><i class="fas fa-receipt me-2"></i>Tu Pago Mensual al IMSS</h5>
                             </div>
                             <div class="card-body">
-                                <h6 class="text-center text-muted mb-3">Pagos Mensuales por Año</h6>
-                                <div class="row text-center">
-                                    <div class="col-2">
-                                        <div class="border rounded p-2">
-                                            <small class="text-muted">2025</small>
-                                            <h5 class="text-primary mb-0" id="pago-2025">$0</h5>
-                                            <small class="text-muted">13.35%</small>
-                                        </div>
+                                <h6 class="text-center text-muted mb-3">Pagos Mensuales por Año (Tasa UMA fija anual - actualizada cada febrero por Banxico)</h6>
+                                <div id="monthly-payments-container">
+                                    <!-- Monthly payments will be dynamically generated based on user's age and retirement timeline -->
+                                    <div class="row text-center" id="monthly-payments-row">
+                                        <!-- Payments will be populated by JavaScript based on actual months available -->
                                     </div>
-                                    <div class="col-2">
-                                        <div class="border rounded p-2">
-                                            <small class="text-muted">2026</small>
-                                            <h5 class="text-warning mb-0" id="pago-2026">$0</h5>
-                                            <small class="text-muted">14.44%</small>
-                                        </div>
-                                    </div>
-                                    <div class="col-2">
-                                        <div class="border rounded p-2">
-                                            <small class="text-muted">2027</small>
-                                            <h5 class="text-danger mb-0" id="pago-2027">$0</h5>
-                                            <small class="text-muted">15.53%</small>
-                                        </div>
-                                    </div>
-                                    <div class="col-2">
-                                        <div class="border rounded p-2">
-                                            <small class="text-muted">2028</small>
-                                            <h5 class="text-danger mb-0" id="pago-2028">$0</h5>
-                                            <small class="text-muted">16.62%</small>
-                                        </div>
-                                    </div>
-                                    <div class="col-2">
-                                        <div class="border rounded p-2">
-                                            <small class="text-muted">2029</small>
-                                            <h5 class="text-danger mb-0" id="pago-2029">$0</h5>
-                                            <small class="text-muted">17.71%</small>
-                                        </div>
-                                    </div>
-                                    <div class="col-2">
-                                        <div class="border rounded p-2">
-                                            <small class="text-muted">2030</small>
-                                            <h5 class="text-danger mb-0" id="pago-2030">$0</h5>
-                                            <small class="text-muted">18.00%</small>
-                                        </div>
+                                    <div class="mt-3 text-center">
+                                        <small class="text-muted">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            Pagos mensuales fijos por año hasta su 65º cumpleaños<br>
+                                            <i class="fas fa-calendar-alt me-1"></i>
+                                            Cada febrero Banco de México actualiza la UMA y las tasas para todo el año
+                                        </small>
                                     </div>
                                 </div>
                                 <hr>
@@ -1662,20 +1632,72 @@
         function updatePaymentDisplay(resultado) {
             console.log('🎯 Updating year-specific payment display with UMA impact...');
             
-            // Years to display
-            const years = [2025, 2026, 2027, 2028, 2029, 2030];
+            // Calculate monthly payment timeline based on user's actual retirement date
             let payments = [];
             
-            if (resultado.inversion.desglose_anual) {
-                years.forEach(year => {
-                    const yearData = resultado.inversion.desglose_anual[year];
-                    const element = document.getElementById(`pago-${year}`);
-                    
-                    if (yearData && element) {
-                        const payment = yearData.costo_mensual;
-                        payments.push(payment);
-                        element.textContent = '$' + formatearNumero(Math.round(payment));
-                        console.log(`✅ ${year}: $${formatearNumero(Math.round(payment))}/mes`);
+            if (resultado.inversion.desglose_anual && resultado.edad_info) {
+                const currentDate = new Date();
+                const currentYear = currentDate.getFullYear();
+                const currentMonth = currentDate.getMonth() + 1; // JavaScript months are 0-based
+                
+                const edadActual = resultado.edad_info.edad_actual;
+                const añosHasta65 = 65 - edadActual;
+                const mesesHasta65 = Math.round(añosHasta65 * 12);
+                
+                // Calculate retirement date (when user turns 65)
+                const fechaRetiro = new Date();
+                fechaRetiro.setFullYear(currentYear + añosHasta65);
+                
+                console.log(`📅 Usuario actual: ${edadActual} años`);
+                console.log(`📅 Meses disponibles hasta 65 años: ${mesesHasta65} meses`);
+                console.log(`📅 Fecha aproximada de retiro: ${fechaRetiro.getFullYear()}-${fechaRetiro.getMonth()+1}`);
+                
+                // Generate monthly payment cards
+                const monthlyPaymentsRow = document.getElementById('monthly-payments-row');
+                monthlyPaymentsRow.innerHTML = ''; // Clear existing content
+                
+                // Show monthly payments by year - each year has fixed monthly amount set in February by Banco de México
+                const availableYears = Object.keys(resultado.inversion.desglose_anual).sort();
+                const maxYear = Math.min(2030, fechaRetiro.getFullYear());
+                
+                console.log(`💰 Pagos mensuales fijos por año (tasa UMA actualizada cada febrero por Banxico):`);
+                
+                availableYears.forEach(year => {
+                    const yearNum = parseInt(year);
+                    if (yearNum <= maxYear) {
+                        const yearData = resultado.inversion.desglose_anual[year];
+                        const monthlyPayment = yearData.costo_mensual;
+                        payments.push(monthlyPayment);
+                        
+                        // Determine color based on rate
+                        let colorClass = 'text-primary';
+                        if (yearData.tasa_pct >= 16) colorClass = 'text-danger';
+                        else if (yearData.tasa_pct >= 15) colorClass = 'text-warning';
+                        
+                        // Calculate months available in this year (until user turns 65)
+                        let monthsInYear = 12;
+                        let totalPaymentYear = monthlyPayment * 12; // Full year payment
+                        
+                        if (yearNum === maxYear && fechaRetiro.getFullYear() === maxYear) {
+                            monthsInYear = fechaRetiro.getMonth() + 1;
+                            totalPaymentYear = monthlyPayment * monthsInYear; // Partial year payment
+                        }
+                        
+                        const cardHtml = `
+                            <div class="col-2">
+                                <div class="border rounded p-2">
+                                    <small class="text-muted">${year}</small>
+                                    <h5 class="${colorClass} mb-0">$${formatearNumero(Math.round(monthlyPayment))}</h5>
+                                    <small class="text-muted">Tasa: ${yearData.tasa_pct}%</small>
+                                    <div><small class="text-success">${monthsInYear} meses</small></div>
+                                    <div><small class="text-info">Total: $${formatearNumero(Math.round(totalPaymentYear))}</small></div>
+                                </div>
+                            </div>
+                        `;
+                        
+                        monthlyPaymentsRow.innerHTML += cardHtml;
+                        console.log(`✅ ${year}: $${formatearNumero(Math.round(monthlyPayment))}/mes × ${monthsInYear} meses = $${formatearNumero(Math.round(totalPaymentYear))} total`);
+                        console.log(`   📅 Tasa UMA fija todo el año (actualizada en febrero ${year} por Banxico)`);
                     }
                 });
                 

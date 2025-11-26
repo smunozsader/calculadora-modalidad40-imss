@@ -475,6 +475,7 @@ def generar_reporte_pdf():
         story.append(Paragraph("DATOS DEL BENEFICIARIO Y SITUACIÓN ACTUAL", subtitle_style))
         
         # Extraer datos técnicos de los resultados
+        resultados = data['resultados']
         sin_mod40 = resultados['sin_modalidad40']
         con_mod40 = resultados['con_modalidad40']
         edad_info = resultados.get('edad_info', {})

@@ -1680,26 +1680,38 @@
                 });
                 
                 // Update UMA impact information
-                if (payments.length >= 2) {
-                    const firstPayment = payments[0];
-                    const lastPayment = payments[payments.length - 1];
-                    const umaIncrease = ((lastPayment / firstPayment) - 1) * 100;
-                    
-                    // Calculate UMA multiple (approximate)
-                    const sbc = parseFloat(document.getElementById('sbc_modalidad40').value) || 0;
-                    const umaMultiple = sbc / 113.14; // 2025 UMA base
-                    
-                    // Update UMA info
-                    const umaMultipleEl = document.getElementById('uma-multiple');
-                    const umaImpactEl = document.getElementById('uma-impact');
-                    
-                    if (umaMultipleEl && umaMultiple > 0) {
+                const sbc = parseFloat(document.getElementById('sbc_modalidad40').value) || 0;
+                const umaMultiple = sbc / 113.14; // 2025 UMA base
+                
+                // Always update UMA multiple
+                const umaMultipleEl = document.getElementById('uma-multiple');
+                if (umaMultipleEl) {
+                    if (umaMultiple > 0) {
                         umaMultipleEl.textContent = umaMultiple.toFixed(1) + ' UMAs';
+                    } else {
+                        umaMultipleEl.textContent = '0 UMAs';
                     }
-                    
-                    if (umaImpactEl && umaIncrease > 0) {
-                        umaImpactEl.textContent = '+' + umaIncrease.toFixed(1) + '%';
-                        umaImpactEl.className = umaIncrease > 30 ? 'text-warning' : 'text-success';
+                }
+                
+                // Calculate increment if we have multiple payments
+                const umaImpactEl = document.getElementById('uma-impact');
+                if (umaImpactEl) {
+                    if (payments.length >= 2) {
+                        const firstPayment = payments[0];
+                        const lastPayment = payments[payments.length - 1];
+                        const umaIncrease = ((lastPayment / firstPayment) - 1) * 100;
+                        
+                        if (umaIncrease > 0) {
+                            umaImpactEl.textContent = '+' + umaIncrease.toFixed(1) + '%';
+                            umaImpactEl.className = umaIncrease > 30 ? 'text-warning' : 'text-success';
+                        } else {
+                            umaImpactEl.textContent = '+0%';
+                            umaImpactEl.className = 'text-muted';
+                        }
+                    } else {
+                        // Single year or no payment data
+                        umaImpactEl.textContent = '+0%';
+                        umaImpactEl.className = 'text-muted';
                     }
                 }
             }

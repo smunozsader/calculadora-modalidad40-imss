@@ -279,23 +279,46 @@
                                     </div>
                                 </div>
 
-                                <div class="mb-3">
-                                    <label class="form-label">
-                                        <i class="fas fa-calendar-check me-2"></i>¿Cuántos años tienes actualmente?
-                                    </label>
-                                    <div class="input-group">
-                                        <input type="number" class="form-control" id="edad_actual" 
-                                               placeholder="Ej: 58" min="50" max="70" required
-                                               oninput="calcularTiempoRestante()">
-                                        <span class="input-group-text">años</span>
-                                    </div>
-                                    <div class="form-text">
-                                        <i class="fas fa-info-circle me-1"></i>
-                                        Necesario para calcular cuánto tiempo tienes para cotizar en Modalidad 40
-                                    </div>
-                                </div>
-
-                                        <!-- Age warnings and time calculation will be handled automatically by the new personal data section -->
+                                        <!-- Sección de Edad y Jubilación -->
+                                        <div class="card mb-3">
+                                            <div class="card-header bg-light">
+                                                <h6 class="mb-0"><i class="fas fa-calendar-alt me-2"></i>Información de Edad y Jubilación</h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="row">
+                                                    <div class="col-md-6 mb-3">
+                                                        <label class="form-label">¿Cuántos años tienes actualmente?</label>
+                                                        <div class="input-group">
+                                                            <input type="number" class="form-control" id="edad_actual_display" 
+                                                                   placeholder="Se calcula automáticamente" readonly>
+                                                            <span class="input-group-text">años</span>
+                                                        </div>
+                                                        <div class="form-text">
+                                                            <i class="fas fa-info-circle me-1"></i>
+                                                            Se calcula automáticamente desde tu fecha de nacimiento
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6 mb-3">
+                                                        <label class="form-label">¿A qué edad te quieres jubilar? *</label>
+                                                        <div class="input-group">
+                                                            <input type="number" class="form-control" id="edad_jubilacion_user" 
+                                                                   placeholder="Ej: 65" min="60" max="70" required
+                                                                   oninput="calcularTiempoDisponibleUser()">
+                                                            <span class="input-group-text">años</span>
+                                                        </div>
+                                                        <div class="form-text">
+                                                            <strong>Recomendado:</strong> 65 años (100% + 11% extra por vejez)
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <!-- Alert para mostrar tiempo disponible -->
+                                                <div id="tiempo-disponible-alert" class="alert" style="display: none;">
+                                                    <i class="fas fa-clock me-2"></i>
+                                                    <span id="tiempo-disponible-texto"></span>
+                                                </div>
+                                            </div>
+                                        </div>
 
                                 <!-- Situación Familiar -->
                                 <div class="card mb-3">
@@ -765,19 +788,25 @@
                     edad--;
                 }
                 
+                // Actualizar ambos campos de edad actual
                 document.getElementById('edad_actual').value = edad;
+                document.getElementById('edad_actual_display').value = edad;
                 
                 // Auto-sugerir edad de jubilación recomendada
                 const edadJubilacion = document.getElementById('edad_jubilacion');
+                const edadJubilacionUser = document.getElementById('edad_jubilacion_user');
+                
                 if (!edadJubilacion.value && edad > 0) {
                     if (edad >= 65) {
                         edadJubilacion.value = 65;
+                        edadJubilacionUser.value = 65;
                     } else if (edad >= 60) {
                         edadJubilacion.value = 65; // Siempre recomendar 65
+                        edadJubilacionUser.value = 65;
                     }
                 }
                 
-                calcularTiempoDisponible();
+                calcularTiempoDisponibleUser();
             }
         }
         
@@ -792,27 +821,49 @@
             curp.value = curp.value.toUpperCase();
         }
         
-        // Calcular tiempo disponible para Modalidad 40
-        function calcularTiempoDisponible() {
-            const edadActual = parseInt(document.getElementById('edad_actual').value);
-            const edadJubilacion = parseInt(document.getElementById('edad_jubilacion').value);
+        // Calcular tiempo disponible para Modalidad 40 (Nueva función)
+        function calcularTiempoDisponibleUser() {
+            const edadActual = parseInt(document.getElementById('edad_actual_display').value) || parseInt(document.getElementById('edad_actual').value);
+            const edadJubilacion = parseInt(document.getElementById('edad_jubilacion_user').value);
+            
+            const alertDiv = document.getElementById('tiempo-disponible-alert');
+            const textoSpan = document.getElementById('tiempo-disponible-texto');
             
             if (edadActual && edadJubilacion) {
                 const añosDisponibles = edadJubilacion - edadActual;
                 
-                // Mostrar advertencias según el tiempo disponible
+                // Sincronizar con el campo oculto para el backend
+                document.getElementById('edad_jubilacion').value = edadJubilacion;
+                
                 if (añosDisponibles <= 0) {
-                    mostrarAlerta('Ya estás en edad de pensión. Consulta directamente con IMSS.', 'danger');
+                    alertDiv.className = 'alert alert-danger';
+                    textoSpan.innerHTML = '<strong>⚠️ Ya estás en edad de pensión.</strong> Consulta directamente con IMSS para opciones disponibles.';
+                    alertDiv.style.display = 'block';
+                } else if (añosDisponibles <= 2) {
+                    alertDiv.className = 'alert alert-danger';
+                    textoSpan.innerHTML = `<strong>🚨 ¡CRÍTICO! Solo tienes ${añosDisponibles} ${añosDisponibles === 1 ? 'año' : 'años'}.</strong> Debes iniciar Modalidad 40 INMEDIATAMENTE.`;
+                    alertDiv.style.display = 'block';
                 } else if (añosDisponibles <= 5) {
-                    mostrarAlerta(`¡URGENTE! Solo tienes ${añosDisponibles} años. Debes iniciar Modalidad 40 YA.`, 'warning');
+                    alertDiv.className = 'alert alert-warning';
+                    textoSpan.innerHTML = `<strong>⚠️ ¡URGENTE! Tienes ${añosDisponibles} años.</strong> Debes iniciar Modalidad 40 pronto para maximizar beneficios.`;
+                    alertDiv.style.display = 'block';
                 } else {
-                    mostrarAlerta(`Tienes ${añosDisponibles} años disponibles. Puedes planear con calma.`, 'info');
+                    alertDiv.className = 'alert alert-success';
+                    textoSpan.innerHTML = `<strong>✅ Excelente! Tienes ${añosDisponibles} años disponibles.</strong> Puedes planear tu estrategia con calma.`;
+                    alertDiv.style.display = 'block';
                 }
+            } else {
+                alertDiv.style.display = 'none';
             }
         }
         
+        // Función legacy para compatibilidad
+        function calcularTiempoDisponible() {
+            calcularTiempoDisponibleUser();
+        }
+        
         function mostrarAlerta(mensaje, tipo) {
-            // You can implement this to show alerts in a designated area
+            // Función de compatibilidad
             console.log(`${tipo.toUpperCase()}: ${mensaje}`);
         }
 
@@ -917,7 +968,7 @@
                 sdp_actual: document.getElementById('sdp_actual').value,
                 sbc_modalidad40: document.getElementById('sbc_modalidad40').value,
                 edad_actual: document.getElementById('edad_actual').value,
-                edad_pension: document.getElementById('edad_jubilacion').value, // Note: changed to edad_jubilacion
+                edad_pension: document.getElementById('edad_jubilacion_user').value, // Get from user input field
                 
                 // Situación familiar
                 tiene_esposa: document.getElementById('tiene_esposa').checked,
@@ -1226,8 +1277,9 @@
             document.getElementById('mes_nacimiento').addEventListener('change', calcularEdadActual);
             document.getElementById('año_nacimiento').addEventListener('input', calcularEdadActual);
             
-            // Retirement age change trigger
-            document.getElementById('edad_jubilacion').addEventListener('change', calcularTiempoDisponible);
+            // Retirement age change triggers
+            document.getElementById('edad_jubilacion').addEventListener('change', calcularTiempoDisponibleUser);
+            document.getElementById('edad_jubilacion_user').addEventListener('input', calcularTiempoDisponibleUser);
             
             // NSS formatting (only numbers)
             document.getElementById('nss').addEventListener('input', function(e) {
@@ -1238,21 +1290,24 @@
             const form = document.getElementById('calculadoraForm');
             form.addEventListener('submit', function(e) {
                 // Validate required personal fields
-                const requiredFields = ['nombre', 'apellido_paterno', 'dia_nacimiento', 'mes_nacimiento', 'año_nacimiento', 'edad_jubilacion'];
+                const requiredFields = ['nombre', 'apellido_paterno', 'dia_nacimiento', 'mes_nacimiento', 'año_nacimiento', 'edad_jubilacion_user'];
                 
                 for (let field of requiredFields) {
                     const element = document.getElementById(field);
                     if (!element.value) {
                         e.preventDefault();
                         element.focus();
-                        alert(`Por favor completa el campo: ${element.previousElementSibling.textContent}`);
+                        alert(`Por favor completa el campo: ${element.labels[0] ? element.labels[0].textContent : 'requerido'}`);
                         return;
                     }
                 }
                 
                 // Validate age makes sense
                 const edadActual = parseInt(document.getElementById('edad_actual').value);
-                const edadJubilacion = parseInt(document.getElementById('edad_jubilacion').value);
+                const edadJubilacion = parseInt(document.getElementById('edad_jubilacion_user').value);
+                
+                // Sync the hidden field for backend
+                document.getElementById('edad_jubilacion').value = edadJubilacion;
                 
                 if (edadJubilacion <= edadActual) {
                     e.preventDefault();

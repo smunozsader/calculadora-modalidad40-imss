@@ -122,6 +122,41 @@ def calcular():
         tiene_padres = bool(data.get('tiene_padres', False))
         print(f"DEBUG: tiene_padres = {tiene_padres}")
         
+        # VALIDACIÓN CRÍTICA: Elegibilidad Modalidad 40 (Ley 97)
+        print("DEBUG: 🔍 Validando elegibilidad Modalidad 40...")
+        mes_inicio_str = data.get('mes_inicio_cotizacion', '')
+        año_inicio_str = data.get('año_inicio_cotizacion', '')
+        
+        if not mes_inicio_str or not año_inicio_str:
+            print("DEBUG: ❌ Falta fecha de inicio de cotización")
+            return jsonify({
+                'error': 'Fecha de inicio de cotización requerida para validar elegibilidad Modalidad 40'
+            }), 400
+        
+        try:
+            mes_inicio_cotizacion = int(mes_inicio_str)
+            año_inicio_cotizacion = int(año_inicio_str)
+            print(f"DEBUG: Inicio cotización: {mes_inicio_cotizacion}/{año_inicio_cotizacion}")
+            
+            # Crear fecha de inicio de cotización
+            from datetime import datetime
+            fecha_inicio_cotizacion = datetime(año_inicio_cotizacion, mes_inicio_cotizacion, 1)
+            fecha_limite_ley97 = datetime(1997, 7, 1)  # 1 de julio de 1997
+            
+            if fecha_inicio_cotizacion >= fecha_limite_ley97:
+                print(f"DEBUG: ❌ Usuario NO elegible: {fecha_inicio_cotizacion} >= {fecha_limite_ley97}")
+                return jsonify({
+                    'error': f'No elegible para Modalidad 40. Iniciaste cotización el {mes_inicio_cotizacion}/{año_inicio_cotizacion}, posterior al 1/jul/1997 (Ley 97). Tu pensión se basa en el sistema de Afores.'
+                }), 400
+            else:
+                print(f"DEBUG: ✅ Usuario elegible: {fecha_inicio_cotizacion} < {fecha_limite_ley97}")
+                
+        except (ValueError, TypeError) as e:
+            print(f"DEBUG: ❌ Error validando fechas: {e}")
+            return jsonify({
+                'error': 'Fecha de inicio de cotización inválida'
+            }), 400
+        
         try:
             año_inicio = int(float(data.get('año_inicio', 2025)))
             print(f"DEBUG: año_inicio = {año_inicio}")

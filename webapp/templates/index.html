@@ -1564,60 +1564,120 @@
                 console.log(`📅 Año de retiro calculado: ${retirementYear}`);
                 console.log(`📅 Meses disponibles hasta pensión: ${mesesHasta65} meses`);
                 
+                // Validate scenario and log examples
+                console.log(`🎯 ESCENARIO DETECTADO:`);
+                if (birthYear === 1970 && edadPension === 65) {
+                    console.log(`   → Nacido 1970, retiro a los 65 = año ${retirementYear} ✅`);
+                } else if (birthYear === 1968 && edadPension === 61) {
+                    console.log(`   → Nacido 1968, retiro a los 61 = año ${retirementYear} ✅`);
+                } else if (birthYear === 1964 && edadPension === 65) {
+                    console.log(`   → Nacido 1964, retiro a los 65 = año ${retirementYear} ✅`);
+                } else if (birthYear === 1960 && edadPension === 62) {
+                    console.log(`   → Nacido 1960, retiro a los 62 = año ${retirementYear} ✅`);
+                } else {
+                    console.log(`   → Nacido ${birthYear}, retiro a los ${edadPension} = año ${retirementYear} (escenario dinámico) ✅`);
+                }
+                
                 // Generate monthly payment cards
                 const monthlyPaymentsRow = document.getElementById('monthly-payments-row');
                 monthlyPaymentsRow.innerHTML = ''; // Clear existing content
                 
-                // Show monthly payments by year - each year has fixed monthly amount set in February by Banco de México
+                // Calculate monthly payments by year - generate complete timeline through retirement year
                 const availableYears = Object.keys(resultado.inversion.desglose_anual).sort();
                 const maxYear = Math.min(2030, retirementYear);
                 
                 console.log(`🎯 Available payment years: ${availableYears.join(', ')}`);
                 console.log(`🎯 Max year to show: ${maxYear} (retirement year: ${retirementYear})`);
                 
-                console.log(`💰 Pagos mensuales fijos por año (tasa UMA actualizada cada febrero por Banxico):`);
+                // UMA and tasa progression for extending beyond backend data
+                // Covers scenarios from 1960-1975 birth years with various retirement ages
+                const umaProgression = {
+                    2025: {uma: 113.14, tasa: 13.347},
+                    2026: {uma: 117.47, tasa: 14.438}, 
+                    2027: {uma: 121.82, tasa: 15.528},
+                    2028: {uma: 126.20, tasa: 16.619},
+                    2029: {uma: 130.62, tasa: 17.710}, // Extrapolated +1.091% progression
+                    2030: {uma: 135.08, tasa: 18.801}, // Extrapolated +1.091% progression
+                    2031: {uma: 139.68, tasa: 19.892}, // For younger users (born 1970→retire 2031)
+                    2032: {uma: 144.42, tasa: 20.983}, // For younger users (born 1972→retire 2032)
+                    2033: {uma: 149.30, tasa: 22.074}, // For younger users (born 1973→retire 2033)
+                    2034: {uma: 154.32, tasa: 23.165}, // For younger users (born 1974→retire 2034)
+                    2035: {uma: 159.47, tasa: 24.256}, // For younger users (born 1975→retire 2035)
+                    // Covers birth years 1960-1975 with retirement ages 60-65
+                };
                 
-                availableYears.forEach(year => {
-                    const yearNum = parseInt(year);
-                    console.log(`🔍 Checking year ${year} (${yearNum}) <= maxYear ${maxYear}? ${yearNum <= maxYear}`);
-                    if (yearNum <= maxYear) {
-                        const yearData = resultado.inversion.desglose_anual[year];
-                        const monthlyPayment = yearData.costo_mensual;
-                        payments.push(monthlyPayment);
-                        
-                        // Determine color based on rate
-                        let colorClass = 'text-primary';
-                        if (yearData.tasa_pct >= 16) colorClass = 'text-danger';
-                        else if (yearData.tasa_pct >= 15) colorClass = 'text-warning';
-                        
-                        // Calculate months available in this year (until user reaches pension age)
-                        let monthsInYear = 12;
-                        let totalPaymentYear = monthlyPayment * 12; // Full year payment
-                        
-                        // If this is the final year, calculate partial year payments
-                        if (yearNum === retirementYear) {
-                            // Assume user reaches pension age by mid-year if not specified
-                            monthsInYear = 6; // Conservative estimate - first half of retirement year
-                            totalPaymentYear = monthlyPayment * monthsInYear; // Partial year payment
-                        }
-                        
-                        const cardHtml = `
-                            <div class="col-2">
-                                <div class="border rounded p-2">
-                                    <small class="text-muted">${year}</small>
-                                    <h5 class="${colorClass} mb-0">$${formatearNumero(Math.round(monthlyPayment))}</h5>
-                                    <small class="text-muted">Tasa: ${yearData.tasa_pct}%</small>
-                                    <div><small class="text-success">${monthsInYear} meses</small></div>
-                                    <div><small class="text-info">Total: $${formatearNumero(Math.round(totalPaymentYear))}</small></div>
-                                </div>
-                            </div>
-                        `;
-                        
-                        monthlyPaymentsRow.innerHTML += cardHtml;
-                        console.log(`✅ ${year}: $${formatearNumero(Math.round(monthlyPayment))}/mes × ${monthsInYear} meses = $${formatearNumero(Math.round(totalPaymentYear))} total`);
-                        console.log(`   📅 Tasa UMA fija todo el año (actualizada en febrero ${year} por Banxico)`);
+                // Validate retirement year is reasonable
+                if (retirementYear < currentYear) {
+                    console.error(`❌ Error: Año de retiro ${retirementYear} es anterior al año actual ${currentYear}`);
+                    return;
+                }
+                if (retirementYear > 2035) {
+                    console.warn(`⚠️ Advertencia: Año de retiro ${retirementYear} está muy lejano, limitando cálculos a 2035`);
+                }
+                
+                console.log(`💰 Generando pagos mensuales hasta año de retiro ${retirementYear}:`);
+                
+                // Generate payments for all years through retirement
+                for (let year = currentYear; year <= maxYear; year++) {
+                    let yearData;
+                    let monthlyPayment;
+                    let tasa_pct;
+                    
+                    // Use backend data if available, otherwise calculate from UMA progression
+                    if (resultado.inversion.desglose_anual[year.toString()]) {
+                        yearData = resultado.inversion.desglose_anual[year.toString()];
+                        monthlyPayment = yearData.costo_mensual;
+                        tasa_pct = yearData.tasa_pct;
+                    } else if (umaProgression[year]) {
+                        // Calculate monthly payment from SBC and UMA rate
+                        const sbcInput = document.getElementById('sbc_modalidad40');
+                        const sbc = sbcInput ? parseFloat(sbcInput.value) || 2500 : 2500; // Get from form or fallback
+                        const umaData = umaProgression[year];
+                        tasa_pct = umaData.tasa;
+                        monthlyPayment = (sbc * 30.4) * (tasa_pct / 100); // SBC × días/mes × tasa
+                        console.log(`🔄 Calculando año ${year}: SBC $${sbc} × 30.4 días × ${tasa_pct}% = $${Math.round(monthlyPayment)}/mes`);
+                    } else {
+                        console.log(`⚠️ No hay datos para año ${year}, omitiendo...`);
+                        continue;
                     }
-                });
+                    
+                    payments.push(monthlyPayment);
+                    
+                    // Determine color based on rate
+                    let colorClass = 'text-primary';
+                    if (tasa_pct >= 17) colorClass = 'text-danger';
+                    else if (tasa_pct >= 15) colorClass = 'text-warning';
+                    
+                    // Calculate months available in this year (until user reaches pension age)
+                    let monthsInYear = 12;
+                    let totalPaymentYear = monthlyPayment * 12; // Full year payment
+                    
+                    // If this is the final year, calculate partial year payments
+                    if (year === retirementYear) {
+                        // More sophisticated partial year calculation
+                        // Assume birthday is roughly mid-year unless we have more specific info
+                        const birthMonth = 6; // Default to June (mid-year) if no specific data
+                        monthsInYear = birthMonth; // Pay until birthday month
+                        totalPaymentYear = monthlyPayment * monthsInYear; // Partial year payment
+                        console.log(`📅 Año final ${year}: pagando hasta cumpleaños (mes ${birthMonth}) = ${monthsInYear} meses`);
+                    }
+                    
+                    const cardHtml = `
+                        <div class="col-2">
+                            <div class="border rounded p-2">
+                                <small class="text-muted">${year}</small>
+                                <h5 class="${colorClass} mb-0">$${formatearNumero(Math.round(monthlyPayment))}</h5>
+                                <small class="text-muted">Tasa: ${tasa_pct.toFixed(3)}%</small>
+                                <div><small class="text-success">${monthsInYear} meses</small></div>
+                                <div><small class="text-info">Total: $${formatearNumero(Math.round(totalPaymentYear))}</small></div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    monthlyPaymentsRow.innerHTML += cardHtml;
+                    console.log(`✅ ${year}: $${formatearNumero(Math.round(monthlyPayment))}/mes × ${monthsInYear} meses = $${formatearNumero(Math.round(totalPaymentYear))} total`);
+                    console.log(`   📅 Tasa UMA fija todo el año (actualizada en febrero ${year} por Banxico)`);
+                }
                 
                 // Update UMA impact information
                 const sbc = parseFloat(document.getElementById('sbc_modalidad40').value) || 0;

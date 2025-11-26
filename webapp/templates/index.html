@@ -1472,17 +1472,8 @@
             document.getElementById('pension-con').textContent = '$' + formatearNumero(resultado.con_modalidad40.pension_total);
             document.getElementById('diferencia-mensual').textContent = '$' + formatearNumero(resultado.analisis_roi.diferencia_mensual);
             
-            // Pago mensual IMSS (lo más importante)
-            // Fixed: Update year-specific payments
-            if (resultado.inversion.desglose_anual) {
-                const desglose = resultado.inversion.desglose_anual;
-                if (desglose['2025']) document.getElementById('pago-2025').textContent = '$' + formatearNumero(desglose['2025'].costo_mensual);
-                if (desglose['2026']) document.getElementById('pago-2026').textContent = '$' + formatearNumero(desglose['2026'].costo_mensual);
-                if (desglose['2027']) document.getElementById('pago-2027').textContent = '$' + formatearNumero(desglose['2027'].costo_mensual);
-                if (desglose['2028']) document.getElementById('pago-2028').textContent = '$' + formatearNumero(desglose['2028'].costo_mensual);
-                if (desglose['2029']) document.getElementById('pago-2029').textContent = '$' + formatearNumero(desglose['2029'].costo_mensual);
-                                if (desglose['2030']) document.getElementById('pago-2030').textContent = '$' + formatearNumero(desglose['2030'].costo_mensual);
-            }            
+            // Monthly payments are now handled by the dynamic payment system above
+            // (Old hardcoded payment elements have been removed)            
             // Análisis de inversión
             document.getElementById('inversion-total').textContent = '$' + formatearNumero(resultado.inversion.total_años);
             document.getElementById('incremento-anual').textContent = '$' + formatearNumero(resultado.analisis_roi.diferencia_anual);

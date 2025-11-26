@@ -934,9 +934,23 @@
             }
         }
 
-        // Formatear números con comas
+        // Formatear números con comas - versión robusta
         function formatearNumero(numero) {
-            return numero.toLocaleString('es-MX', {
+            // Debug: verificar el valor recibido
+            console.log('formatearNumero recibió:', numero, 'tipo:', typeof numero);
+            
+            if (numero === undefined || numero === null || isNaN(numero)) {
+                console.warn('formatearNumero: valor inválido', numero);
+                return '0';
+            }
+            
+            const num = parseFloat(numero);
+            if (isNaN(num)) {
+                console.warn('formatearNumero: no se pudo convertir a número', numero);
+                return '0';
+            }
+            
+            return num.toLocaleString('es-MX', {
                 minimumFractionDigits: 0,
                 maximumFractionDigits: 0
             });
@@ -968,7 +982,7 @@
                 sdp_actual: document.getElementById('sdp_actual').value,
                 sbc_modalidad40: document.getElementById('sbc_modalidad40').value,
                 edad_actual: document.getElementById('edad_actual').value,
-                edad_pension: document.getElementById('edad_jubilacion_user').value, // Get from user input field
+                edad_pension: document.getElementById('edad_jubilacion_user').value || document.getElementById('edad_jubilacion').value,
                 
                 // Situación familiar
                 tiene_esposa: document.getElementById('tiene_esposa').checked,
@@ -977,8 +991,20 @@
                 año_inicio: 2025
             };
             
+            // Debug: Verificar datos antes de enviar
+            console.log('Datos a enviar:', formData);
+            
+            // Validación extra para edad_pension
+            if (!formData.edad_pension) {
+                alert('Por favor selecciona la edad a la que te quieres jubilar.');
+                document.querySelector('.loading').style.display = 'none';
+                document.querySelector('button[type="submit"]').style.display = 'block';
+                return;
+            }
+            
             try {
                 // Enviar petición
+                console.log('🚀 Enviando petición a /calcular...');
                 const response = await fetch('/calcular', {
                     method: 'POST',
                     headers: {
@@ -987,16 +1013,47 @@
                     body: JSON.stringify(formData)
                 });
                 
-                const resultado = await response.json();
+                console.log('📡 Respuesta HTTP recibida:');
+                console.log('  - Status:', response.status);
+                console.log('  - Status Text:', response.statusText);
+                console.log('  - OK:', response.ok);
+                console.log('  - Headers:', Object.fromEntries(response.headers.entries()));
+                
+                // Intentar parsear la respuesta JSON
+                let resultado;
+                try {
+                    resultado = await response.json();
+                    console.log('✅ JSON parseado exitosamente:', resultado);
+                } catch (parseError) {
+                    console.error('❌ Error parseando JSON:', parseError);
+                    const responseText = await response.text();
+                    console.error('📄 Contenido de respuesta cruda:', responseText);
+                    alert('Error: El servidor no devolvió un JSON válido. Ver consola para detalles.');
+                    return;
+                }
                 
                 if (response.ok && resultado.success) {
+                    console.log('🎉 Cálculo exitoso, mostrando resultados...');
                     // Mostrar resultados
                     mostrarResultados(resultado);
                 } else {
-                    // Mostrar error
-                    alert('Error: ' + resultado.error);
+                    // Debugging completo del error
+                    console.group('🚨 ANÁLISIS DETALLADO DEL ERROR');
+                    console.log('response.ok:', response.ok);
+                    console.log('response.status:', response.status);
+                    console.log('resultado.success:', resultado?.success);
+                    console.log('resultado.error:', resultado?.error);
+                    console.log('Objeto resultado completo:', resultado);
+                    console.groupEnd();
+                    
+                    // Mostrar error con más detalle
+                    const errorMsg = resultado?.error || `Error HTTP ${response.status}: ${response.statusText} - Sin mensaje de error específico`;
+                    console.error('💥 Error del servidor:', errorMsg);
+                    alert('Error en el cálculo: ' + errorMsg);
                 }
             } catch (error) {
+                console.error('🔥 Error de conexión/red:', error);
+                console.error('Stack trace:', error.stack);
                 alert('Error de conexión: ' + error.message);
             } finally {
                 // Ocultar loading
@@ -1006,9 +1063,35 @@
         });
         
         function mostrarResultados(resultado) {
+            // Debug: verificar que tenemos los datos correctos
+            console.log('Mostrando resultados:', resultado);
+            
+            // Verificar que el resultado tiene la estructura esperada
+            if (!resultado || typeof resultado !== 'object') {
+                console.error('Resultado inválido:', resultado);
+                alert('Error: Los datos de respuesta no son válidos');
+                return;
+            }
+            
+            // Verificar propiedades críticas
+            if (!resultado.sin_modalidad40 || !resultado.con_modalidad40 || !resultado.inversion || !resultado.analisis_roi) {
+                console.error('Estructura de resultado incompleta:', resultado);
+                alert('Error: Los datos de respuesta están incompletos');
+                return;
+            }
+            
+            // Verificar que los elementos existen antes de usarlos
+            const mensajeInicial = document.getElementById('mensaje-inicial');
+            const resultadosDiv = document.getElementById('resultados');
+            
+            if (!mensajeInicial || !resultadosDiv) {
+                console.error('Elementos del DOM no encontrados');
+                return;
+            }
+            
             // Ocultar mensaje inicial y mostrar resultados
-            document.getElementById('mensaje-inicial').style.display = 'none';
-            document.getElementById('resultados').style.display = 'block';
+            mensajeInicial.style.display = 'none';
+            resultadosDiv.style.display = 'block';
             
             // Información de edad
             if (resultado.edad_info) {

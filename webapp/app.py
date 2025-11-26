@@ -21,12 +21,23 @@ from reportlab.lib.units import inch
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
 
-# Importar la calculadora corregida
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-import sys
-import os
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'calculadoras-python'))
-from Calculadora_Modalidad_40_CORREGIDA import CalculadoraModalidad40Corregida
+# Importar la calculadora corregida - con debugging
+calculator_path = os.path.join(os.path.dirname(__file__), '..', 'calculadoras-python')
+print(f"DEBUG: Agregando path del calculadora: {calculator_path}")
+print(f"DEBUG: Path absoluto: {os.path.abspath(calculator_path)}")
+print(f"DEBUG: Path existe: {os.path.exists(calculator_path)}")
+
+sys.path.append(calculator_path)
+
+try:
+    from Calculadora_Modalidad_40_CORREGIDA import CalculadoraModalidad40Corregida
+    print("DEBUG: ✅ Calculadora importada exitosamente")
+except ImportError as e:
+    print(f"DEBUG: ❌ Error importando calculadora: {e}")
+    raise
+except Exception as e:
+    print(f"DEBUG: ❌ Error inesperado importando calculadora: {e}")
+    raise
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'modalidad40-imss-2025'
@@ -40,8 +51,12 @@ def index():
 def calcular():
     """Endpoint para calcular la pensión"""
     try:
+        # Debug: Log del inicio del cálculo
+        print("DEBUG: Inicio del cálculo")
+        
         # Obtener datos del formulario
         data = request.get_json()
+        print("DEBUG: Datos recibidos:", data)
         
         # Validar datos requeridos para cálculo
         required_calc_fields = [
@@ -50,6 +65,7 @@ def calcular():
         
         for field in required_calc_fields:
             if field not in data or data[field] == '':
+                print(f"DEBUG: Campo faltante: {field}")
                 return jsonify({
                     'error': f'Campo requerido para cálculo: {field}'
                 }), 400
@@ -97,7 +113,14 @@ def calcular():
             })
         
         # Calcular con la calculadora corregida
+        print("DEBUG: Instanciando calculadora...")
         calc = CalculadoraModalidad40Corregida()
+        print("DEBUG: Calculadora instanciada exitosamente")
+        
+        print("DEBUG: Iniciando cálculo con parámetros:", {
+            'semanas': semanas_cotizadas, 'sdp_actual': sdp_actual, 
+            'sbc_modalidad40': sbc_modalidad40, 'edad_pension': edad_pension
+        })
         
         resultado = calc.calcular_escenario_completo(
             semanas_cotizadas_actuales=semanas_cotizadas,
@@ -110,9 +133,13 @@ def calcular():
             año_inicio=año_inicio
         )
         
+        print("DEBUG: Cálculo completado:", type(resultado))
+        
         if 'error' in resultado:
+            print("DEBUG: Error en resultado:", resultado['error'])
             return jsonify({'error': resultado['error']}), 400
         
+        print("DEBUG: Formateando respuesta...")
         # Formatear respuesta para el frontend
         respuesta = {
             'success': True,
@@ -161,9 +188,24 @@ def calcular():
         return jsonify(respuesta)
         
     except ValueError as e:
+        print("DEBUG: ValueError capturado:", str(e))
         return jsonify({'error': f'Error en formato de números: {str(e)}'}), 400
     except Exception as e:
+        print("DEBUG: Exception capturada:", str(e))
+        print("DEBUG: Tipo de excepción:", type(e))
+        import traceback
+        print("DEBUG: Traceback completo:")
+        traceback.print_exc()
         return jsonify({'error': f'Error interno: {str(e)}'}), 500
+
+@app.route('/test')
+def test():
+    """Endpoint de prueba para verificar que el servidor funciona"""
+    return jsonify({
+        'success': True,
+        'message': 'Servidor funcionando correctamente',
+        'timestamp': datetime.now().isoformat()
+    })
 
 @app.route('/info')
 def info():

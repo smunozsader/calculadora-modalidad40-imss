@@ -1532,20 +1532,25 @@
             
             if (resultado.inversion.desglose_anual && resultado.edad_info) {
                 const currentDate = new Date();
-                const currentYear = currentDate.getFullYear();
+                const currentYear = currentDate.getFullYear(); // 2025
                 const currentMonth = currentDate.getMonth() + 1; // JavaScript months are 0-based
                 
                 const edadActual = resultado.edad_info.edad_actual;
-                const añosHasta65 = 65 - edadActual;
+                const edadPension = resultado.edad_info.edad_pension || 65;
+                
+                // Calculate birth year: current year - current age
+                const birthYear = currentYear - edadActual;
+                
+                // Calculate retirement year: birth year + pension age 
+                const retirementYear = birthYear + edadPension;
+                
+                const añosHasta65 = edadPension - edadActual;
                 const mesesHasta65 = Math.round(añosHasta65 * 12);
                 
-                // Calculate retirement date (when user turns 65)
-                const fechaRetiro = new Date();
-                fechaRetiro.setFullYear(currentYear + añosHasta65);
-                
-                console.log(`📅 Usuario actual: ${edadActual} años`);
-                console.log(`📅 Meses disponibles hasta 65 años: ${mesesHasta65} meses`);
-                console.log(`📅 Fecha aproximada de retiro: ${fechaRetiro.getFullYear()}-${fechaRetiro.getMonth()+1}`);
+                console.log(`📅 Usuario actual: ${edadActual} años (nacido en ${birthYear})`);
+                console.log(`📅 Edad de pensión planeada: ${edadPension} años`);
+                console.log(`📅 Año de retiro calculado: ${retirementYear}`);
+                console.log(`📅 Meses disponibles hasta pensión: ${mesesHasta65} meses`);
                 
                 // Generate monthly payment cards
                 const monthlyPaymentsRow = document.getElementById('monthly-payments-row');
@@ -1553,12 +1558,16 @@
                 
                 // Show monthly payments by year - each year has fixed monthly amount set in February by Banco de México
                 const availableYears = Object.keys(resultado.inversion.desglose_anual).sort();
-                const maxYear = Math.min(2030, fechaRetiro.getFullYear());
+                const maxYear = Math.min(2030, retirementYear);
+                
+                console.log(`🎯 Available payment years: ${availableYears.join(', ')}`);
+                console.log(`🎯 Max year to show: ${maxYear} (retirement year: ${retirementYear})`);
                 
                 console.log(`💰 Pagos mensuales fijos por año (tasa UMA actualizada cada febrero por Banxico):`);
                 
                 availableYears.forEach(year => {
                     const yearNum = parseInt(year);
+                    console.log(`🔍 Checking year ${year} (${yearNum}) <= maxYear ${maxYear}? ${yearNum <= maxYear}`);
                     if (yearNum <= maxYear) {
                         const yearData = resultado.inversion.desglose_anual[year];
                         const monthlyPayment = yearData.costo_mensual;
@@ -1569,12 +1578,14 @@
                         if (yearData.tasa_pct >= 16) colorClass = 'text-danger';
                         else if (yearData.tasa_pct >= 15) colorClass = 'text-warning';
                         
-                        // Calculate months available in this year (until user turns 65)
+                        // Calculate months available in this year (until user reaches pension age)
                         let monthsInYear = 12;
                         let totalPaymentYear = monthlyPayment * 12; // Full year payment
                         
-                        if (yearNum === maxYear && fechaRetiro.getFullYear() === maxYear) {
-                            monthsInYear = fechaRetiro.getMonth() + 1;
+                        // If this is the final year, calculate partial year payments
+                        if (yearNum === retirementYear) {
+                            // Assume user reaches pension age by mid-year if not specified
+                            monthsInYear = 6; // Conservative estimate - first half of retirement year
                             totalPaymentYear = monthlyPayment * monthsInYear; // Partial year payment
                         }
                         
@@ -1693,19 +1704,25 @@
 
         // Función para generar reporte PDF con múltiples opciones de salida
         async function generarReportePDF(outputMode = 'download') {
+            console.log(`🎯 Iniciando generación de PDF - Modo: ${outputMode}`);
+            
             if (!resultadosCalculados) {
+                console.error('❌ No hay resultados calculados disponibles');
                 alert('Primero calcula tu pensión antes de generar el reporte.');
                 return;
             }
             
-            console.log(`🎯 Generando reporte PDF - Modo: ${outputMode}`);
+            console.log(`✅ Resultados disponibles:`, resultadosCalculados);
 
             // Validar datos requeridos (usar campos del modal si están disponibles, sino los principales)
             const nombre = document.getElementById('modal_nombre')?.value.trim() || document.getElementById('nombre')?.value.trim();
             const apellidoPaterno = document.getElementById('modal_apellido_paterno')?.value.trim() || document.getElementById('apellido_paterno')?.value.trim();
             
+            console.log(`📝 Datos personales: nombre="${nombre}", apellido="${apellidoPaterno}"`);
+            
             if (!nombre || !apellidoPaterno) {
-                alert('Por favor completa al menos el nombre y apellido paterno.');
+                console.error('❌ Faltan datos personales requeridos');
+                alert('Por favor completa al menos el nombre y apellido paterno en el modal.');
                 return;
             }
 
@@ -1745,6 +1762,8 @@
                     resultados: resultadosCalculados
                 };
 
+                console.log(`📤 Enviando datos al backend:`, datosReporte);
+
                 // Enviar a backend para generar PDF
                 const response = await fetch('/generar-reporte-pdf', {
                     method: 'POST',
@@ -1753,6 +1772,8 @@
                     },
                     body: JSON.stringify(datosReporte)
                 });
+
+                console.log(`📡 Respuesta del servidor: ${response.status} ${response.statusText}`);
 
                 if (response.ok) {
                     const blob = await response.blob();
@@ -1886,13 +1907,30 @@ El PDF está en tu carpeta de Descargas listo para adjuntar.`);
                         alert(successMessages[outputMode] || '¡Reporte PDF procesado exitosamente!');
                     }
                 } else {
-                    throw new Error('Error al generar el reporte');
+                    console.error(`❌ Error del servidor: ${response.status}`);
+                    const errorText = await response.text();
+                    console.error(`❌ Detalles del error:`, errorText);
+                    
+                    let errorMessage = 'Error al generar el reporte';
+                    try {
+                        const errorData = JSON.parse(errorText);
+                        errorMessage = errorData.error || errorMessage;
+                    } catch (e) {
+                        errorMessage += ` (Status: ${response.status})`;
+                    }
+                    
+                    throw new Error(errorMessage);
                 }
                 
             } catch (error) {
-                alert('Error al generar el reporte: ' + error.message);
+                console.error('❌ Error completo:', error);
+                alert(`Error al generar el reporte: ${error.message}\\n\\nRevisa la consola (F12) para más detalles.`);
             } finally {
-                if (loadingPdf) loadingPdf.style.display = 'none';
+                // Asegurar que el loading se oculte siempre
+                if (loadingPdf) {
+                    loadingPdf.style.display = 'none';
+                    console.log('🔄 Loading spinner ocultado');
+                }
             }
         }
         

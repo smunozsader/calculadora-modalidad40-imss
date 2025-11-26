@@ -1528,11 +1528,8 @@
             escenarioDiv.style.display = this.checked ? 'block' : 'none';
         });
 
-        // Variable global para almacenar resultados del cálculo
-        let resultadosCalculados = null;
-
-        // Actualizar variable cuando se calculan resultados
-        function mostrarResultados(resultado) {
+        // Duplicate function removed to fix null reference errors
+        // Original function mostrarResultados remains above
             resultadosCalculados = resultado; // Guardar para el PDF
             
             // ... resto del código existente ...

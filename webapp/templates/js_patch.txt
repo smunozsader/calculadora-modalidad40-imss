@@ -1,0 +1,13 @@
+// JavaScript patch to fix null reference errors
+// Replace all pago-YYYY element updates with safe versions
+
+// Original problematic lines:
+// if (desglose['2025']) document.getElementById('pago-2025').textContent = '$' + formatearNumero(desglose['2025'].costo_mensual);
+
+// Fixed versions with null checks:
+if (desglose['2025'] && document.getElementById('pago-2025')) document.getElementById('pago-2025').textContent = '$' + formatearNumero(desglose['2025'].costo_mensual);
+if (desglose['2026'] && document.getElementById('pago-2026')) document.getElementById('pago-2026').textContent = '$' + formatearNumero(desglose['2026'].costo_mensual);
+if (desglose['2027'] && document.getElementById('pago-2027')) document.getElementById('pago-2027').textContent = '$' + formatearNumero(desglose['2027'].costo_mensual);
+if (desglose['2028'] && document.getElementById('pago-2028')) document.getElementById('pago-2028').textContent = '$' + formatearNumero(desglose['2028'].costo_mensual);
+if (desglose['2029'] && document.getElementById('pago-2029')) document.getElementById('pago-2029').textContent = '$' + formatearNumero(desglose['2029'].costo_mensual);
+if (desglose['2030'] && document.getElementById('pago-2030')) document.getElementById('pago-2030').textContent = '$' + formatearNumero(desglose['2030'].costo_mensual);

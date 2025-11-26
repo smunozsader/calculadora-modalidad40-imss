@@ -54,6 +54,29 @@
             padding: 0.75rem;
             border-radius: 0.375rem;
         }
+        .dropdown-item {
+            transition: all 0.2s ease-in-out;
+        }
+        .dropdown-item:hover {
+            transform: translateX(5px);
+            background-color: #f8f9fa;
+        }
+        .dropdown-item small {
+            font-size: 0.75rem;
+        }
+        .btn-group .dropdown-toggle-split {
+            border-left: 1px solid rgba(255,255,255,0.2);
+        }
+        .modal-footer .d-flex {
+            align-items: center;
+        }
+        .list-group-item {
+            transition: all 0.2s ease-in-out;
+        }
+        .list-group-item:hover {
+            background-color: #f8f9fa;
+            border-left: 4px solid #007bff;
+        }
     </style>
 </head>
 <body>
@@ -110,11 +133,6 @@
                         </div>
                         <div class="card-body">
                             <form id="calculadoraForm">
-                                <!-- VERIFICATION: Personal Data Fields should be visible -->
-                                <div class="alert alert-warning mb-3" style="background-color: #ff9800; color: white; font-weight: bold; text-align: center;">
-                                    🔥 FORM UPDATE TEST - If you see this orange box, the form is updated! 🔥
-                                </div>
-                                
                                 <!-- Datos Personales - Updated Nov 26, 2025 -->
                                 <div class="card mb-4" style="border: 3px solid #ff0000;">
                                     <div class="card-header" style="background-color: #28a745; color: white;">
@@ -725,12 +743,144 @@
                     </form>
                 </div>
                 <div class="modal-footer">
+                    <div class="d-flex justify-content-between w-100">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-2"></i>Cancelar
+                        </button>
+                        
+                        <div class="btn-group">
+                            <!-- Dropdown para opciones de salida -->
+                            <button type="button" class="btn btn-primary" onclick="generarReportePDF('download')">
+                                <i class="fas fa-download me-2"></i>Descargar PDF
+                                <div class="spinner-border spinner-border-sm ms-2" id="loading-pdf-download" style="display: none;"></div>
+                            </button>
+                            <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split" 
+                                    data-bs-toggle="dropdown" aria-expanded="false">
+                                <span class="visually-hidden">Más opciones</span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><h6 class="dropdown-header"><i class="fas fa-file-pdf me-2"></i>Opciones de Salida</h6></li>
+                                
+                                <!-- Opción: Descargar PDF -->
+                                <li>
+                                    <a class="dropdown-item" href="#" onclick="generarReportePDF('download')">
+                                        <i class="fas fa-download me-2 text-success"></i>
+                                        <strong>Descargar PDF</strong>
+                                        <small class="d-block text-muted">Guardar en tu dispositivo</small>
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                
+                                <!-- Opción: Imprimir Directamente -->
+                                <li>
+                                    <a class="dropdown-item" href="#" onclick="generarReportePDF('print')">
+                                        <i class="fas fa-print me-2 text-primary"></i>
+                                        <strong>Imprimir Directamente</strong>
+                                        <small class="d-block text-muted">Enviar a impresora</small>
+                                    </a>
+                                </li>
+                                
+                                <!-- Opción: Vista Previa -->
+                                <li>
+                                    <a class="dropdown-item" href="#" onclick="generarReportePDF('preview')">
+                                        <i class="fas fa-eye me-2 text-info"></i>
+                                        <strong>Vista Previa</strong>
+                                        <small class="d-block text-muted">Ver antes de guardar</small>
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                
+                                <!-- Opción: Email -->
+                                <li>
+                                    <a class="dropdown-item" href="#" onclick="generarReportePDF('email')">
+                                        <i class="fas fa-envelope me-2 text-warning"></i>
+                                        <strong>Enviar por Email</strong>
+                                        <small class="d-block text-muted">Compartir el reporte</small>
+                                    </a>
+                                </li>
+                                
+                                <!-- Opción: Guardar en Nube -->
+                                <li>
+                                    <a class="dropdown-item" href="#" onclick="mostrarOpcionesNube()">
+                                        <i class="fas fa-cloud me-2 text-secondary"></i>
+                                        <strong>Guardar en la Nube</strong>
+                                        <small class="d-block text-muted">Google Drive, OneDrive, etc.</small>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Opciones de Nube -->
+    <div class="modal fade" id="modalNube" tabindex="-1" aria-labelledby="modalNubeLabel" aria-hidden="true">
+        <div class="modal-dialog modal-md">
+            <div class="modal-content">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title" id="modalNubeLabel">
+                        <i class="fas fa-cloud me-2"></i>Guardar en la Nube
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Próximamente:</strong> Integración con servicios de almacenamiento en la nube.
+                        Por ahora puedes descargar el PDF y subirlo manualmente a tu servicio preferido.
+                    </div>
+                    
+                    <div class="list-group">
+                        <a href="#" class="list-group-item list-group-item-action" onclick="guardarEnNube('google-drive')">
+                            <div class="d-flex w-100 justify-content-between">
+                                <div>
+                                    <i class="fab fa-google-drive me-2 text-success"></i>
+                                    <strong>Google Drive</strong>
+                                </div>
+                                <small class="text-muted">Próximamente</small>
+                            </div>
+                            <p class="mb-1 text-muted">Guarda directamente en tu Google Drive</p>
+                        </a>
+                        
+                        <a href="#" class="list-group-item list-group-item-action" onclick="guardarEnNube('onedrive')">
+                            <div class="d-flex w-100 justify-content-between">
+                                <div>
+                                    <i class="fab fa-microsoft me-2 text-primary"></i>
+                                    <strong>Microsoft OneDrive</strong>
+                                </div>
+                                <small class="text-muted">Próximamente</small>
+                            </div>
+                            <p class="mb-1 text-muted">Sincroniza con tu cuenta de Microsoft</p>
+                        </a>
+                        
+                        <a href="#" class="list-group-item list-group-item-action" onclick="guardarEnNube('dropbox')">
+                            <div class="d-flex w-100 justify-content-between">
+                                <div>
+                                    <i class="fab fa-dropbox me-2 text-info"></i>
+                                    <strong>Dropbox</strong>
+                                </div>
+                                <small class="text-muted">Próximamente</small>
+                            </div>
+                            <p class="mb-1 text-muted">Almacena en tu Dropbox personal</p>
+                        </a>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="alert alert-success">
+                        <i class="fas fa-lightbulb me-2"></i>
+                        <strong>Tip:</strong> Por ahora, descarga el PDF y súbelo manualmente a tu servicio de nube preferido 
+                        para mantener una copia de respaldo de tu análisis de Modalidad 40.
+                    </div>
+                </div>
+                <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        <i class="fas fa-times me-2"></i>Cancelar
+                        <i class="fas fa-times me-2"></i>Cerrar
                     </button>
-                    <button type="button" class="btn btn-primary" onclick="generarReportePDF()">
-                        <i class="fas fa-file-pdf me-2"></i>Generar PDF
-                        <div class="spinner-border spinner-border-sm ms-2" id="loading-pdf" style="display: none;"></div>
+                    <button type="button" class="btn btn-primary" onclick="generarReportePDF('download'); bootstrap.Modal.getInstance(document.getElementById('modalNube')).hide();">
+                        <i class="fas fa-download me-2"></i>Descargar PDF Mientras Tanto
                     </button>
                 </div>
             </div>
@@ -1272,12 +1422,14 @@
             document.getElementById('resultados').scrollIntoView({ behavior: 'smooth' });
         }
 
-        // Función para generar reporte PDF
-        async function generarReportePDF() {
+        // Función para generar reporte PDF con múltiples opciones de salida
+        async function generarReportePDF(outputMode = 'download') {
             if (!resultadosCalculados) {
                 alert('Primero calcula tu pensión antes de generar el reporte.');
                 return;
             }
+            
+            console.log(`🎯 Generando reporte PDF - Modo: ${outputMode}`);
 
             // Validar datos requeridos
             const nombre = document.getElementById('nombre').value.trim();
@@ -1288,9 +1440,16 @@
                 return;
             }
 
-            // Mostrar loading
-            const loadingPdf = document.getElementById('loading-pdf');
-            loadingPdf.style.display = 'inline-block';
+            // Mostrar loading específico del modo
+            const loadingElements = {
+                'download': document.getElementById('loading-pdf-download'),
+                'print': document.getElementById('loading-pdf-download'), // Usa el mismo por ahora
+                'preview': document.getElementById('loading-pdf-download'),
+                'email': document.getElementById('loading-pdf-download')
+            };
+            
+            const loadingPdf = loadingElements[outputMode] || document.getElementById('loading-pdf-download');
+            if (loadingPdf) loadingPdf.style.display = 'inline-block';
 
             try {
                 // Recopilar datos del formulario
@@ -1327,22 +1486,78 @@
                 });
 
                 if (response.ok) {
-                    // Descargar PDF
                     const blob = await response.blob();
                     const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `Reporte_Modalidad40_${nombre}_${apellidoPaterno}.pdf`;
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
+                    const filename = `Reporte_Modalidad40_${nombre}_${apellidoPaterno}.pdf`;
+                    
+                    // Manejar diferentes modos de salida
+                    switch(outputMode) {
+                        case 'download':
+                            // Descargar PDF
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = filename;
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                            break;
+                            
+                        case 'print':
+                            // Imprimir directamente
+                            const printWindow = window.open(url, '_blank');
+                            printWindow.onload = function() {
+                                printWindow.print();
+                            };
+                            break;
+                            
+                        case 'preview':
+                            // Vista previa en nueva ventana
+                            window.open(url, '_blank');
+                            break;
+                            
+                        case 'email':
+                            // Preparar para envío por email
+                            const emailSubject = `Reporte de Modalidad 40 IMSS - ${nombre} ${apellidoPaterno}`;
+                            const emailBody = `Adjunto mi análisis personalizado de Modalidad 40 IMSS generado el ${new Date().toLocaleDateString('es-MX')}.`;
+                            
+                            // Descargar primero y mostrar instrucciones de email
+                            const emailLink = document.createElement('a');
+                            emailLink.href = url;
+                            emailLink.download = filename;
+                            document.body.appendChild(emailLink);
+                            emailLink.click();
+                            document.body.removeChild(emailLink);
+                            
+                            // Preparar link de email
+                            const mailtoLink = `mailto:?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody + '\\n\\nNota: El archivo PDF se ha descargado. Adjúntalo manualmente a tu email.')}`;
+                            window.location.href = mailtoLink;
+                            break;
+                            
+                        default:
+                            // Default: descargar
+                            const defaultA = document.createElement('a');
+                            defaultA.href = url;
+                            defaultA.download = filename;
+                            document.body.appendChild(defaultA);
+                            defaultA.click();
+                            document.body.removeChild(defaultA);
+                    }
+                    
                     window.URL.revokeObjectURL(url);
                     
                     // Cerrar modal
                     const modal = bootstrap.Modal.getInstance(document.getElementById('modalReporte'));
-                    modal.hide();
+                    if (modal) modal.hide();
                     
-                    alert('¡Reporte PDF generado exitosamente!');
+                    // Mensaje personalizado según el modo
+                    const successMessages = {
+                        'download': '¡PDF descargado exitosamente!',
+                        'print': '¡PDF enviado a la impresora!',
+                        'preview': '¡Vista previa abierta en nueva ventana!',
+                        'email': '¡PDF descargado y email preparado!'
+                    };
+                    
+                    alert(successMessages[outputMode] || '¡Reporte PDF procesado exitosamente!');
                 } else {
                     throw new Error('Error al generar el reporte');
                 }
@@ -1350,8 +1565,32 @@
             } catch (error) {
                 alert('Error al generar el reporte: ' + error.message);
             } finally {
-                loadingPdf.style.display = 'none';
+                if (loadingPdf) loadingPdf.style.display = 'none';
             }
+        }
+        
+        // Función para mostrar modal de opciones de nube
+        function mostrarOpcionesNube() {
+            const modalNube = new bootstrap.Modal(document.getElementById('modalNube'));
+            modalNube.show();
+        }
+        
+        // Función para guardar en servicios de nube (futuro)
+        function guardarEnNube(servicio) {
+            const servicios = {
+                'google-drive': 'Google Drive',
+                'onedrive': 'Microsoft OneDrive', 
+                'dropbox': 'Dropbox'
+            };
+            
+            alert(`La integración con ${servicios[servicio] || servicio} estará disponible próximamente. Por ahora, descarga el PDF y súbelo manualmente.`);
+            
+            // Por ahora, descargar el PDF
+            generarReportePDF('download');
+            
+            // Cerrar modal de nube
+            const modalNube = bootstrap.Modal.getInstance(document.getElementById('modalNube'));
+            if (modalNube) modalNube.hide();
         }
         
         // Event listeners for new personal data fields

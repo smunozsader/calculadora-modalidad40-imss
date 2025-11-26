@@ -230,8 +230,52 @@
                                     </div>
                                 </div>
 
+                                <!-- Elegibilidad Modalidad 40 (Ley 97) -->
+                                <div class="card mb-4" id="elegibilidad-card">
+                                    <div class="card-header bg-warning text-dark">
+                                        <h6 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Elegibilidad Modalidad 40 (Requisito Legal)</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="alert alert-info mb-3" role="alert">
+                                            <i class="fas fa-info-circle me-2"></i>
+                                            <strong>Importante:</strong> La Modalidad 40 solo está disponible para quienes empezaron a cotizar <strong>antes del 1 de julio de 1997</strong> (Ley 73). 
+                                            Quienes iniciaron después están bajo Ley 97 (sistema de Afores) y NO pueden acceder a Modalidad 40.
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label class="form-label">
+                                                <i class="fas fa-calendar-check me-2"></i>¿Cuándo empezaste a cotizar al IMSS? *
+                                            </label>
+                                            <div class="row">
+                                                <div class="col-md-6 mb-3">
+                                                    <select class="form-select" id="mes_inicio_cotizacion" required onchange="validarElegibilidad()">
+                                                        <option value="">Selecciona mes</option>
+                                                        <option value="1">Enero</option><option value="2">Febrero</option><option value="3">Marzo</option>
+                                                        <option value="4">Abril</option><option value="5">Mayo</option><option value="6">Junio</option>
+                                                        <option value="7">Julio</option><option value="8">Agosto</option><option value="9">Septiembre</option>
+                                                        <option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-6 mb-3">
+                                                    <input type="number" class="form-control" id="año_inicio_cotizacion" 
+                                                           placeholder="Año (ej: 1995)" min="1960" max="2025" required onchange="validarElegibilidad()">
+                                                </div>
+                                            </div>
+                                            <div class="form-text">
+                                                <i class="fas fa-lightbulb me-1"></i>
+                                                Revisa tu primer trabajo formal o tu Reporte de Semanas Cotizadas del IMSS para confirmar esta fecha.
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Resultado de elegibilidad -->
+                                        <div id="elegibilidad-resultado" style="display: none;">
+                                            <!-- Se llena dinámicamente con JavaScript -->
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <!-- Datos IMSS -->
-                                <div class="card mb-4">
+                                <div class="card mb-4" id="datos-imss-card" style="display: none;">
                                     <div class="card-header bg-light">
                                         <h6 class="mb-0"><i class="fas fa-briefcase me-2"></i>Información IMSS</h6>
                                     </div>
@@ -932,6 +976,74 @@
         // Global variable to store calculation results for PDF functions
         let resultadosCalculados = null;
         
+        // Función para validar elegibilidad Modalidad 40 (Ley 97)
+        function validarElegibilidad() {
+            const mes = document.getElementById('mes_inicio_cotizacion').value;
+            const año = document.getElementById('año_inicio_cotizacion').value;
+            const resultadoDiv = document.getElementById('elegibilidad-resultado');
+            const datosImssCard = document.getElementById('datos-imss-card');
+            
+            if (!mes || !año) {
+                resultadoDiv.style.display = 'none';
+                datosImssCard.style.display = 'none';
+                return;
+            }
+            
+            const fechaInicio = new Date(parseInt(año), parseInt(mes) - 1, 1);
+            const fechaLimite = new Date(1997, 6, 1); // 1 de julio de 1997
+            
+            console.log(`🔍 Validando elegibilidad: ${mes}/${año} vs julio 1997`);
+            
+            resultadoDiv.style.display = 'block';
+            
+            if (fechaInicio < fechaLimite) {
+                // ELEGIBLE - Ley 73
+                resultadoDiv.innerHTML = `
+                    <div class="alert alert-success" role="alert">
+                        <i class="fas fa-check-circle me-2"></i>
+                        <strong>¡ELEGIBLE PARA MODALIDAD 40!</strong><br>
+                        <small>Empezaste a cotizar en <strong>${obtenerNombreMes(mes)} ${año}</strong>, que es anterior al 1 de julio de 1997. 
+                        Tienes derecho a la Modalidad 40 bajo la Ley 73 del IMSS.</small>
+                    </div>
+                    <div class="alert alert-warning" role="alert">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Requisitos adicionales:</strong><br>
+                        <small>• Debes haber estado dado de baja del IMSS<br>
+                        • No haber dejado de cotizar por más de 5 años consecutivos<br>
+                        • Tener al menos 500 semanas cotizadas</small>
+                    </div>
+                `;
+                datosImssCard.style.display = 'block';
+                console.log('✅ Usuario elegible para Modalidad 40');
+            } else {
+                // NO ELEGIBLE - Ley 97
+                resultadoDiv.innerHTML = `
+                    <div class="alert alert-danger" role="alert">
+                        <i class="fas fa-times-circle me-2"></i>
+                        <strong>NO ELEGIBLE PARA MODALIDAD 40</strong><br>
+                        <small>Empezaste a cotizar en <strong>${obtenerNombreMes(mes)} ${año}</strong>, que es posterior al 1 de julio de 1997. 
+                        Estás bajo la Ley 97 del IMSS (sistema de Afores) y NO puedes acceder a la Modalidad 40.</small>
+                    </div>
+                    <div class="alert alert-info" role="alert">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Alternativas para tu situación:</strong><br>
+                        <small>• Tu pensión se basa en el ahorro acumulado en tu cuenta individual de Afore<br>
+                        • Puedes ser beneficiario de la Pensión Mínima Garantizada<br>
+                        • Considera hacer aportaciones voluntarias a tu Afore</small>
+                    </div>
+                `;
+                datosImssCard.style.display = 'none';
+                console.log('❌ Usuario NO elegible para Modalidad 40');
+            }
+        }
+        
+        // Función auxiliar para obtener nombre del mes
+        function obtenerNombreMes(numeroMes) {
+            const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                          'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+            return meses[parseInt(numeroMes) - 1];
+        }
+        
         // Función para establecer tope máximo
         function setTopeMaximo() {
             document.getElementById('sbc_modalidad40').value = '2464.58';
@@ -1187,6 +1299,25 @@
         document.getElementById('calculadoraForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
+            // VALIDACIÓN CRÍTICA: Verificar elegibilidad Modalidad 40 (Ley 97)
+            const mesInicio = document.getElementById('mes_inicio_cotizacion').value;
+            const añoInicio = document.getElementById('año_inicio_cotizacion').value;
+            
+            if (!mesInicio || !añoInicio) {
+                alert('⚠️ Debes completar la fecha de inicio de cotización al IMSS para continuar.');
+                return;
+            }
+            
+            const fechaInicio = new Date(parseInt(añoInicio), parseInt(mesInicio) - 1, 1);
+            const fechaLimite = new Date(1997, 6, 1); // 1 de julio de 1997
+            
+            if (fechaInicio >= fechaLimite) {
+                alert('❌ No puedes usar esta calculadora.\n\nEmpezaste a cotizar después del 1 de julio de 1997, por lo que estás bajo la Ley 97 (sistema de Afores) y NO tienes derecho a la Modalidad 40.\n\nTu pensión se basa en tu cuenta individual de Afore.');
+                return;
+            }
+            
+            console.log('✅ Usuario elegible confirmado, procediendo con cálculo...');
+            
             // Mostrar loading
             document.querySelector('.loading').style.display = 'block';
             document.querySelector('button[type="submit"]').style.display = 'none';
@@ -1203,6 +1334,10 @@
                 dia_nacimiento: document.getElementById('dia_nacimiento').value,
                 mes_nacimiento: document.getElementById('mes_nacimiento').value,
                 año_nacimiento: document.getElementById('año_nacimiento').value,
+                
+                // Elegibilidad Modalidad 40 (Ley 97)
+                mes_inicio_cotizacion: document.getElementById('mes_inicio_cotizacion').value,
+                año_inicio_cotizacion: document.getElementById('año_inicio_cotizacion').value,
                 
                 // Datos IMSS y cálculo
                 semanas_cotizadas: document.getElementById('semanas_cotizadas').value,

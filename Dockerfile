@@ -20,5 +20,5 @@ ENV PORT=8080
 # Expose port
 EXPOSE 8080
 
-# Change to webapp directory and start gunicorn
-CMD ["gunicorn", "--chdir", "webapp", "app:app", "--host", "0.0.0.0", "--port", "8080"]
+# Start gunicorn with the main entry point
+CMD ["gunicorn", "main:app", "--host", "0.0.0.0", "--port", "8080", "--workers", "1"]

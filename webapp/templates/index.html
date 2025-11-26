@@ -1179,6 +1179,10 @@
                 try {
                     resultado = await response.json();
                     console.log('✅ JSON parseado exitosamente:', resultado);
+                    console.log('🔍 DEBUGGING - Propiedades del resultado:', Object.keys(resultado));
+                    console.log('🔍 DEBUGGING - resultado.success:', resultado.success);
+                    console.log('🔍 DEBUGGING - resultado.error:', resultado.error);
+                    console.log('🔍 DEBUGGING - Resultado completo:', JSON.stringify(resultado, null, 2));
                 } catch (parseError) {
                     console.error('❌ Error parseando JSON:', parseError);
                     const responseText = await response.text();
@@ -1187,7 +1191,15 @@
                     return;
                 }
                 
-                if (response.ok && resultado.success) {
+                // Verificar si hay un error explícito en la respuesta
+                if (resultado.error) {
+                    console.error('💥 Error explícito del servidor:', resultado.error);
+                    alert('Error en el cálculo: ' + resultado.error);
+                    return;
+                }
+                
+                // Verificar si tenemos datos de éxito
+                if (response.ok && (resultado.success || resultado.sin_modalidad40)) {
                     console.log('🎉 Cálculo exitoso, mostrando resultados...');
                     // Mostrar resultados
                     mostrarResultados(resultado);
@@ -1198,6 +1210,8 @@
                     console.log('response.status:', response.status);
                     console.log('resultado.success:', resultado?.success);
                     console.log('resultado.error:', resultado?.error);
+                    console.log('resultado tiene sin_modalidad40:', !!resultado?.sin_modalidad40);
+                    console.log('resultado tiene con_modalidad40:', !!resultado?.con_modalidad40);
                     console.log('Objeto resultado completo:', resultado);
                     console.groupEnd();
                     

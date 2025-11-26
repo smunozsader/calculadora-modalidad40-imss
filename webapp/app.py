@@ -52,36 +52,82 @@ def calcular():
     """Endpoint para calcular la pensión"""
     try:
         # Debug: Log del inicio del cálculo
-        print("DEBUG: Inicio del cálculo")
+        print("DEBUG: ===========================================")
+        print("DEBUG: 🚀 INICIO DEL CÁLCULO - MODALIDAD 40")
+        print("DEBUG: ===========================================")
         
         # Obtener datos del formulario
         data = request.get_json()
-        print("DEBUG: Datos recibidos:", data)
+        print("DEBUG: Datos recibidos COMPLETOS:", data)
+        print("DEBUG: Tipo de datos:", type(data))
+        
+        if not data:
+            print("DEBUG: ❌ No se recibieron datos JSON")
+            return jsonify({'error': 'No se recibieron datos JSON válidos'}), 400
         
         # Validar datos requeridos para cálculo
         required_calc_fields = [
             'semanas_cotizadas', 'sdp_actual', 'sbc_modalidad40', 'edad_actual', 'edad_pension'
         ]
         
-        for field in required_calc_fields:
-            if field not in data or data[field] == '':
-                print(f"DEBUG: Campo faltante: {field}")
-                return jsonify({
-                    'error': f'Campo requerido para cálculo: {field}'
-                }), 400
+        print(f"DEBUG: Validando campos requeridos: {required_calc_fields}")
         
-        # Convertir a números
-        semanas_cotizadas = int(data['semanas_cotizadas'])
-        sdp_actual = float(data['sdp_actual'])
-        sbc_modalidad40 = float(data['sbc_modalidad40'])
-        edad_actual = int(data['edad_actual'])
-        edad_pension = int(data['edad_pension'])
+        for field in required_calc_fields:
+            if field not in data or data[field] == '' or data[field] is None:
+                print(f"DEBUG: ❌ Campo faltante o vacío: {field}")
+                print(f"DEBUG: Valor recibido: '{data.get(field, 'NO_EXISTS')}'")
+                print(f"DEBUG: Keys disponibles: {list(data.keys())}")
+                return jsonify({
+                    'error': f'Campo requerido para cálculo: {field}. Valor recibido: {data.get(field, "no proporcionado")}'
+                }), 400
+            else:
+                print(f"DEBUG: ✅ Campo {field}: '{data[field]}'")
+        
+        # Convertir a números con validación
+        print("DEBUG: 🔢 Convirtiendo datos a números...")
+        try:
+            semanas_cotizadas = int(float(data['semanas_cotizadas']))  # Permite decimales que se redondean
+            print(f"DEBUG: semanas_cotizadas = {semanas_cotizadas}")
+            
+            sdp_actual = float(data['sdp_actual'])
+            print(f"DEBUG: sdp_actual = {sdp_actual}")
+            
+            sbc_modalidad40 = float(data['sbc_modalidad40'])
+            print(f"DEBUG: sbc_modalidad40 = {sbc_modalidad40}")
+            
+            edad_actual = int(float(data['edad_actual']))
+            print(f"DEBUG: edad_actual = {edad_actual}")
+            
+            edad_pension = int(float(data['edad_pension']))
+            print(f"DEBUG: edad_pension = {edad_pension}")
+            
+        except (ValueError, TypeError) as e:
+            print(f"DEBUG: ❌ Error convirtiendo números: {e}")
+            return jsonify({
+                'error': f'Error en formato de datos numéricos: {str(e)}'
+            }), 400
         
         # Opciones familiares
-        tiene_esposa = data.get('tiene_esposa', False)
-        num_hijos = int(data.get('num_hijos', 0))
-        tiene_padres = data.get('tiene_padres', False)
-        año_inicio = int(data.get('año_inicio', 2025))
+        print("DEBUG: 👨‍👩‍👧‍👦 Procesando opciones familiares...")
+        tiene_esposa = bool(data.get('tiene_esposa', False))
+        print(f"DEBUG: tiene_esposa = {tiene_esposa}")
+        
+        try:
+            num_hijos = int(float(data.get('num_hijos', 0)))
+            print(f"DEBUG: num_hijos = {num_hijos}")
+        except (ValueError, TypeError):
+            num_hijos = 0
+            print("DEBUG: num_hijos defaulted to 0")
+        
+        tiene_padres = bool(data.get('tiene_padres', False))
+        print(f"DEBUG: tiene_padres = {tiene_padres}")
+        
+        try:
+            año_inicio = int(float(data.get('año_inicio', 2025)))
+            print(f"DEBUG: año_inicio = {año_inicio}")
+        except (ValueError, TypeError):
+            año_inicio = 2025
+            print("DEBUG: año_inicio defaulted to 2025")
         
         # Validaciones básicas
         if semanas_cotizadas < 500:
@@ -141,6 +187,16 @@ def calcular():
         
         print("DEBUG: Formateando respuesta...")
         # Formatear respuesta para el frontend
+        print("DEBUG: Formatando respuesta para frontend...")
+        print("DEBUG: Keys en resultado:", list(resultado.keys()) if isinstance(resultado, dict) else "NO ES DICT")
+        
+        # Verificar que resultado tiene las claves esperadas
+        required_keys = ['sin_modalidad40', 'con_modalidad40', 'inversion', 'analisis_roi']
+        missing_keys = [k for k in required_keys if k not in resultado]
+        if missing_keys:
+            print(f"DEBUG: ❌ Claves faltantes en resultado: {missing_keys}")
+            return jsonify({'error': f'Error en cálculo - claves faltantes: {missing_keys}'}), 500
+        
         respuesta = {
             'success': True,
             'edad_info': {
@@ -165,7 +221,8 @@ def calcular():
                 'pension_total': round(resultado['con_modalidad40']['pension_final_mensual'], 0),
                 'cuantia_pct': round(resultado['con_modalidad40']['cuantia_basica_pct'], 2),
                 'incremento_pct': round(resultado['con_modalidad40']['incremento_anual_pct'], 2),
-                'multiple_uma': round(resultado['con_modalidad40']['multiple_uma'], 2)
+                'multiple_uma': round(resultado['con_modalidad40']['multiple_uma'], 2),
+                'pago_mensual_imss': round(resultado['inversion']['promedio_mensual'], 0)
             },
             'inversion': {
                 'total_5_años': round(resultado['inversion']['total_5_años'], 0),
@@ -185,18 +242,39 @@ def calcular():
             'uma_2025': calc.uma_diaria_2025
         }
         
+        print("DEBUG: ✅ Respuesta formateada exitosamente")
+        print("DEBUG: Keys de respuesta:", list(respuesta.keys()))
+        print("DEBUG: 🚀 ENVIANDO RESPUESTA AL CLIENTE:")
+        print("DEBUG: Respuesta completa:", respuesta)
+        
         return jsonify(respuesta)
         
-    except ValueError as e:
-        print("DEBUG: ValueError capturado:", str(e))
-        return jsonify({'error': f'Error en formato de números: {str(e)}'}), 400
+    except ValueError as ve:
+        error_msg = f'Error en formato de números: {str(ve)}'
+        print(f"DEBUG: ❌ ValueError capturado: {error_msg}")
+        return jsonify({'error': error_msg}), 400
+    except KeyError as ke:
+        error_msg = f'Error: Clave faltante {str(ke)}'
+        print(f"DEBUG: ❌ KeyError capturado: {error_msg}")
+        import traceback
+        print("DEBUG: Traceback KeyError:")
+        traceback.print_exc()
+        return jsonify({'error': error_msg}), 500
+    except AttributeError as ae:
+        error_msg = f'Error de atributo: {str(ae)}'
+        print(f"DEBUG: ❌ AttributeError capturado: {error_msg}")
+        import traceback
+        print("DEBUG: Traceback AttributeError:")
+        traceback.print_exc()
+        return jsonify({'error': error_msg}), 500
     except Exception as e:
-        print("DEBUG: Exception capturada:", str(e))
-        print("DEBUG: Tipo de excepción:", type(e))
+        error_msg = f'Error interno del servidor: {str(e)}'
+        print(f"DEBUG: ❌ Exception general capturada: {error_msg}")
+        print(f"DEBUG: Tipo de excepción: {type(e)}")
         import traceback
         print("DEBUG: Traceback completo:")
         traceback.print_exc()
-        return jsonify({'error': f'Error interno: {str(e)}'}), 500
+        return jsonify({'error': error_msg}), 500
 
 @app.route('/test')
 def test():
@@ -206,6 +284,73 @@ def test():
         'message': 'Servidor funcionando correctamente',
         'timestamp': datetime.now().isoformat()
     })
+
+@app.route('/test-calculator')
+def test_calculator():
+    """Endpoint para probar la calculadora en aislamiento"""
+    try:
+        print("DEBUG: 🧪 PROBANDO CALCULADORA EN AISLAMIENTO")
+        
+        # Crear instancia de calculadora
+        calc = CalculadoraModalidad40Corregida()
+        print("DEBUG: ✅ Calculadora instanciada")
+        
+        # Parámetros de prueba básicos
+        test_params = {
+            'semanas_cotizadas': 758,
+            'sdp_diario': 222.02,
+            'sbc_modalidad40': 2828.50,  # 25 UMAs
+            'edad_pension': 65,
+            'tiene_esposa': False,
+            'num_hijos': 0,
+            'tiene_padres': False,
+            'año_inicio': 2025
+        }
+        
+        print("DEBUG: Parámetros de prueba:", test_params)
+        
+        # Ejecutar cálculo
+        resultado = calc.calcular_escenario_completo(
+            semanas_cotizadas_actuales=test_params['semanas_cotizadas'],
+            sdp_actual_diario=test_params['sdp_diario'],
+            sbc_modalidad40_diario=test_params['sbc_modalidad40'],
+            edad_pension=test_params['edad_pension'],
+            tiene_esposa=test_params['tiene_esposa'],
+            num_hijos_dependientes=test_params['num_hijos'],
+            tiene_padres_dependientes=test_params['tiene_padres'],
+            año_inicio=test_params['año_inicio']
+        )
+        
+        print("DEBUG: ✅ Cálculo completado")
+        print("DEBUG: Keys en resultado:", list(resultado.keys()))
+        
+        # Verificar estructura
+        required_keys = ['sin_modalidad40', 'con_modalidad40', 'inversion', 'analisis_roi']
+        structure_ok = all(k in resultado for k in required_keys)
+        
+        return jsonify({
+            'success': True,
+            'calculator_working': True,
+            'structure_ok': structure_ok,
+            'result_keys': list(resultado.keys()),
+            'test_params': test_params,
+            'sample_result': {
+                'sin_mod40_pension': resultado['sin_modalidad40']['pension_final_mensual'],
+                'con_mod40_pension': resultado['con_modalidad40']['pension_final_mensual'],
+                'inversion_total': resultado['inversion']['total_5_años'],
+                'roi_anual': resultado['analisis_roi']['roi_anual_pct']
+            }
+        })
+        
+    except Exception as e:
+        print("DEBUG: ❌ Error en test-calculator:", str(e))
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'calculator_working': False
+        }), 500
 
 @app.route('/info')
 def info():

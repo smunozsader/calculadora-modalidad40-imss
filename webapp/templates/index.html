@@ -272,8 +272,8 @@
                                     <div class="input-group">
                                         <span class="input-group-text">$</span>
                                         <input type="number" class="form-control" id="sbc_modalidad40" 
-                                               placeholder="Ej: 2464.58" step="0.01" min="0" required
-                                               oninput="calcularPagoEstimado()">
+                                               placeholder="Ej: 2464.58" step="0.01" min="0" max="2828.50" required
+                                               oninput="calcularPagoEstimado()" onchange="validarLimiteUMA(this)">
                                         <span class="input-group-text">por día</span>
                                     </div>
                                     <div class="form-text mb-2">
@@ -1133,6 +1133,17 @@
         }
 
         // Calcular pago estimado en tiempo real
+        function validarLimiteUMA(input) {
+            const LIMITE_DIARIO_UMA = 2828.50; // 25 UMAs máximo legal
+            const valor = parseFloat(input.value);
+            
+            if (valor > LIMITE_DIARIO_UMA) {
+                input.value = LIMITE_DIARIO_UMA;
+                mostrarAlerta(`💰 LÍMITE APLICADO: El salario se ajustó automáticamente a $${LIMITE_DIARIO_UMA.toLocaleString('es-MX')} diarios (tope máximo legal de 25 UMAs)`, 'warning');
+                calcularPagoEstimado(); // Recalcular con el nuevo valor
+            }
+        }
+        
         function calcularPagoEstimado() {
             const sbc = parseFloat(document.getElementById('sbc_modalidad40').value);
             const pagoEstimadoDiv = document.getElementById('pago-estimado');
@@ -1242,17 +1253,18 @@
             
             // Validate SBC is within UMA limits (25 UMAs = $2,828.50 daily = $84,855 monthly)
             const sbcModalidad40 = parseFloat(formData.sbc_modalidad40);
+            const LIMITE_DIARIO_UMA = 2828.50; // 25 UMAs máximo legal diario
             const topeMaximoMensual = 84855; // 25 UMAs × $113.14 × 30 days
             
-            if (sbcModalidad40 > topeMaximoMensual) {
-                const continuar = confirm(`💰 LÍMITE DE UMA EXCEDIDO\n\nEl salario deseado de $${formatearNumero(sbcModalidad40)} excede el tope máximo legal de $${formatearNumero(topeMaximoMensual)} mensuales (25 UMAs).\n\n¿Quieres ajustarlo automáticamente al tope máximo y continuar?`);
+            if (sbcModalidad40 > LIMITE_DIARIO_UMA) {
+                const continuar = confirm(`💰 LÍMITE DE UMA EXCEDIDO\n\nEl salario deseado de $${formatearNumero(sbcModalidad40)} diarios excede el tope máximo legal de $${formatearNumero(LIMITE_DIARIO_UMA)} diarios (25 UMAs).\n\n¿Quieres ajustarlo automáticamente al tope máximo y continuar?`);
                 
                 if (continuar) {
                     // Auto-adjust to maximum allowed
-                    formData.sbc_modalidad40 = topeMaximoMensual;
-                    formData.salario_deseado = topeMaximoMensual;
-                    document.getElementById('salario_deseado').value = topeMaximoMensual;
-                    mostrarAlerta(`✅ Salario ajustado automáticamente a $${formatearNumero(topeMaximoMensual)} (tope máximo legal)`, 'warning');
+                    formData.sbc_modalidad40 = LIMITE_DIARIO_UMA;
+                    document.getElementById('sbc_modalidad40').value = LIMITE_DIARIO_UMA;
+                    mostrarAlerta(`✅ Salario ajustado automáticamente a $${formatearNumero(LIMITE_DIARIO_UMA)} diarios (tope máximo legal)`, 'warning');
+                    calcularPagoEstimado(); // Recalcular con el nuevo valor
                 } else {
                     document.querySelector('.loading').style.display = 'none';
                     document.querySelector('button[type="submit"]').style.display = 'block';

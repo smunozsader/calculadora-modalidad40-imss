@@ -204,9 +204,9 @@ def calcular():
         # Add warning for limited years
         warning_msg = None
         if años_disponibles < 2:
-            warning_msg = f"⚠️ Solo tienes {años_disponibles} año(s) disponible(s) para Modalidad 40. Los cálculos son válidos pero el período de inversión es limitado."
+            warning_msg = f"✅ Tienes {años_disponibles} año(s) disponible(s) para Modalidad 40. Incluso con tiempo limitado puedes obtener beneficios significativos."
         elif años_disponibles < 5:
-            warning_msg = f"⚠️ Tienes {años_disponibles} año(s) disponible(s) para Modalidad 40 (menos del óptimo de 5 años)."
+            warning_msg = f"✅ Tienes {años_disponibles} año(s) disponible(s) para Modalidad 40. Modalidad 40 NO requiere duración mínima - puedes cotizar el tiempo que desees."
             
         respuesta = {
             'success': True,
@@ -258,10 +258,10 @@ def calcular():
         # Add warning if less than 5 years available
         if años_disponibles < 5:
             respuesta['warning'] = {
-                'mensaje': f'Solo tienes {años_disponibles} años hasta pensionarte. Modalidad 40 normalmente requiere 5 años completos.',
-                'tipo': 'tiempo_limitado',
+                'mensaje': f'Tienes {años_disponibles} año(s) disponible(s) hasta pensionarte. Con Modalidad 40 puedes mejorar tu pensión significativamente incluso con tiempo limitado.',
+                'tipo': 'informativo',
                 'mostrar': True,
-                'detalles': f'Con {años_disponibles} años tendrías {años_disponibles * 52} semanas adicionales en lugar de las 260 semanas ideales (5 años).'
+                'detalles': f'Modalidad 40 NO tiene duración mínima. Puedes cotizar desde 1 mes hasta {años_disponibles} años. Con {años_disponibles} años tendrías {años_disponibles * 52} semanas adicionales para mejorar tu pensión.'
             }
         
         print("DEBUG: ✅ Respuesta formateada exitosamente")

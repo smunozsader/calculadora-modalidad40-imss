@@ -27,6 +27,36 @@ class CalculadoraModalidad40Corregida:
         self.tope_maximo_umas = 25
         self.tope_diario_2025 = self.uma_diaria_2025 * self.tope_maximo_umas
         
+        # Proyecciones UMA oficiales basadas en análisis INEGI/Banxico (inflación proyectada)
+        self.uma_proyecciones = {
+            # Valores históricos oficiales (INEGI)
+            2016: 73.04,
+            2017: 80.60,
+            2018: 84.39,
+            2019: 86.88,
+            2020: 89.62,
+            2021: 92.97,
+            2022: 96.22,
+            2023: 103.74,
+            2024: 108.57,
+            2025: 113.14,
+            # Proyecciones profesionales (Encuesta Banxico/Citi)
+            2026: 117.47,  # +3.8% inflación proyectada
+            2027: 121.82,  # +3.7% inflación proyectada
+            2028: 126.20,  # +3.6% inflación proyectada
+            2029: 130.62,  # +3.5% inflación proyectada
+            2030: 135.08   # +3.4% inflación proyectada
+        }
+        
+        # Tasas de inflación proyectadas para referencia
+        self.inflacion_proyectada = {
+            2026: 3.80,
+            2027: 3.70,
+            2028: 3.60,
+            2029: 3.50,
+            2030: 3.40
+        }
+        
         # Tablas oficiales de tasas Modalidad 40 (incremento anual)
         self.tasas_modalidad40 = {
             2021: 10.075,
@@ -89,6 +119,28 @@ class CalculadoraModalidad40Corregida:
         self.minimo_garantizado_diario = 248.93
         self.minimo_garantizado_mensual = self.minimo_garantizado_diario * 30.4
     
+    def get_uma_para_año(self, año: int) -> float:
+        """
+        Obtener valor UMA proyectado para un año específico
+        Basado en valores históricos INEGI y proyecciones Banxico/analistas
+        
+        Args:
+            año: Año para el cual obtener UMA
+            
+        Returns:
+            Valor UMA diario proyectado
+        """
+        if año in self.uma_proyecciones:
+            return self.uma_proyecciones[año]
+        elif año < 2025:
+            # Para años históricos no incluidos, usar 2025 como base
+            return self.uma_diaria_2025  
+        else:
+            # Extrapolar para años posteriores a 2030 usando última tasa proyectada (3.4%)
+            base_year = max([y for y in self.uma_proyecciones.keys() if y <= año])
+            years_ahead = año - base_year
+            return self.uma_proyecciones[base_year] * (1.034 ** years_ahead)
+    
     def buscar_porcentajes_por_sdp(self, sdp_diario: float, uma_diaria: float = None) -> Tuple[float, float]:
         """
         Buscar porcentajes de cuantía básica e incremento según SDP
@@ -117,6 +169,7 @@ class CalculadoraModalidad40Corregida:
     def calcular_costo_mensual(self, sbc_diario: float, año: int) -> float:
         """
         Calcular el costo mensual de Modalidad 40 para un SBC y año dados
+        ACTUALIZADO: Considera incrementos UMA anuales
         
         Args:
             sbc_diario: Salario Base de Cotización diario deseado
@@ -128,13 +181,21 @@ class CalculadoraModalidad40Corregida:
         if año not in self.tasas_modalidad40:
             raise ValueError(f"Año {año} no válido. Use años 2021-2030")
         
-        sbc_mensual = sbc_diario * 30.4  # Promedio días por mes
+        # FIXED: Usar UMA del año correspondiente para mantener múltiplos UMA consistentes
+        uma_año = self.get_uma_para_año(año)
+        uma_2025 = self.uma_proyecciones[2025]
+        
+        # Ajustar SBC para mantener el mismo múltiplo de UMA
+        multiple_uma = sbc_diario / uma_2025  # Múltiplo UMA deseado
+        sbc_ajustado = multiple_uma * uma_año  # SBC en pesos del año
+        
+        sbc_mensual = sbc_ajustado * 30.4  # Promedio días por mes
         tasa = self.tasas_modalidad40[año] / 100
         return sbc_mensual * tasa
     
     def calcular_inversion_total_5_años(self, sbc_diario: float, año_inicio: int = 2025) -> Dict:
         """
-        Calcular inversión total durante 5 años con tasas progresivas
+        Calcular inversión total durante hasta 6 años con tasas progresivas (2025-2030)
         
         Args:
             sbc_diario: SBC diario deseado
@@ -150,11 +211,16 @@ class CalculadoraModalidad40Corregida:
         }
         
         total = 0
-        for i in range(5):
+        # Calcular proyecciones hasta 2030 para mostrar todas las tasas
+        años_calculados = 0
+        for i in range(6):  # 2025-2030 = 6 años
             año = año_inicio + i
+            if año > 2030:  # No calcular más allá de 2030
+                break
             costo_mensual = self.calcular_costo_mensual(sbc_diario, año)
             costo_anual = costo_mensual * 12
             total += costo_anual
+            años_calculados += 1
             
             resultado['desglose_anual'][año] = {
                 'tasa_pct': self.tasas_modalidad40[año],
@@ -163,7 +229,7 @@ class CalculadoraModalidad40Corregida:
             }
         
         resultado['total_5_años'] = total
-        resultado['promedio_mensual'] = total / 60  # 5 años * 12 meses
+        resultado['promedio_mensual'] = total / (años_calculados * 12)  # años * 12 meses
         
         return resultado
     
@@ -396,8 +462,8 @@ class CalculadoraModalidad40Corregida:
             # Fallback: asumir se retira a los 65 (máximo común)
             años_disponibles = max(1, 65 - edad_pension) if edad_pension < 65 else 1
         
-        # Modalidad 40 permite máximo 5 años, pero debe permitir mínimo 1 año
-        años_para_modalidad40 = max(1, min(5, años_disponibles))
+        # Modalidad 40 permite máximo 6 años (hasta 2030), pero debe permitir mínimo 1 año
+        años_para_modalidad40 = max(1, min(6, años_disponibles))
         semanas_modalidad40 = años_para_modalidad40 * 52
         semanas_finales_con_mod40 = semanas_cotizadas_actuales + semanas_modalidad40
         

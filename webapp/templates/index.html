@@ -859,10 +859,10 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle me-2"></i>
-                        <strong>Próximamente:</strong> Integración con servicios de almacenamiento en la nube.
-                        Por ahora puedes descargar el PDF y subirlo manualmente a tu servicio preferido.
+                    <div class="alert alert-success">
+                        <i class="fas fa-cloud me-2"></i>
+                        <strong>Integración con la Nube:</strong> Selecciona tu servicio preferido para guardar tu reporte.
+                        El PDF se descargará y abrirá el servicio para que puedas subirlo fácilmente.
                     </div>
                     
                     <div class="list-group">
@@ -872,9 +872,9 @@
                                     <i class="fab fa-google-drive me-2 text-success"></i>
                                     <strong>Google Drive</strong>
                                 </div>
-                                <small class="text-muted">Próximamente</small>
+                                <small class="text-success">Disponible</small>
                             </div>
-                            <p class="mb-1 text-muted">Guarda directamente en tu Google Drive</p>
+                            <p class="mb-1 text-muted">Descarga PDF y abre Google Drive para subirlo</p>
                         </a>
                         
                         <a href="#" class="list-group-item list-group-item-action" onclick="guardarEnNube('onedrive')">
@@ -883,9 +883,9 @@
                                     <i class="fab fa-microsoft me-2 text-primary"></i>
                                     <strong>Microsoft OneDrive</strong>
                                 </div>
-                                <small class="text-muted">Próximamente</small>
+                                <small class="text-primary">Disponible</small>
                             </div>
-                            <p class="mb-1 text-muted">Sincroniza con tu cuenta de Microsoft</p>
+                            <p class="mb-1 text-muted">Descarga PDF y abre OneDrive para subirlo</p>
                         </a>
                         
                         <a href="#" class="list-group-item list-group-item-action" onclick="guardarEnNube('dropbox')">
@@ -894,9 +894,9 @@
                                     <i class="fab fa-dropbox me-2 text-info"></i>
                                     <strong>Dropbox</strong>
                                 </div>
-                                <small class="text-muted">Próximamente</small>
+                                <small class="text-info">Disponible</small>
                             </div>
-                            <p class="mb-1 text-muted">Almacena en tu Dropbox personal</p>
+                            <p class="mb-1 text-muted">Descarga PDF y abre Dropbox para subirlo</p>
                         </a>
                     </div>
                     
@@ -904,8 +904,8 @@
                     
                     <div class="alert alert-success">
                         <i class="fas fa-lightbulb me-2"></i>
-                        <strong>Tip:</strong> Por ahora, descarga el PDF y súbelo manualmente a tu servicio de nube preferido 
-                        para mantener una copia de respaldo de tu análisis de Modalidad 40.
+                        <strong>Tip:</strong> Al seleccionar un servicio, el PDF se descargará automáticamente y se abrirá 
+                        el sitio web del servicio para que puedas subirlo fácilmente. ¡Mantén siempre una copia de respaldo!
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -1774,9 +1774,25 @@
                         case 'print':
                             // Imprimir directamente
                             const printWindow = window.open(url, '_blank');
-                            printWindow.onload = function() {
-                                printWindow.print();
-                            };
+                            if (printWindow) {
+                                printWindow.onload = function() {
+                                    // Esperar un poco para que cargue completamente
+                                    setTimeout(() => {
+                                        printWindow.print();
+                                        // Opcional: cerrar la ventana después de imprimir
+                                        setTimeout(() => {
+                                            if (!printWindow.closed) {
+                                                const cerrarVentana = confirm('¿Cerrar la ventana del PDF después de imprimir?');
+                                                if (cerrarVentana) {
+                                                    printWindow.close();
+                                                }
+                                            }
+                                        }, 3000);
+                                    }, 1000);
+                                };
+                            } else {
+                                alert('❌ No se pudo abrir la ventana de impresión.\\n\\n💡 Intenta con "Vista Previa" y luego imprime desde ahí.');
+                            }
                             break;
                             
                         case 'preview':
@@ -1787,7 +1803,21 @@
                         case 'email':
                             // Preparar para envío por email
                             const emailSubject = `Reporte de Modalidad 40 IMSS - ${nombre} ${apellidoPaterno}`;
-                            const emailBody = `Adjunto mi análisis personalizado de Modalidad 40 IMSS generado el ${new Date().toLocaleDateString('es-MX')}.`;
+                            const emailBody = `Hola,
+
+Adjunto mi análisis personalizado de Modalidad 40 IMSS generado el ${new Date().toLocaleDateString('es-MX')}.
+
+Este reporte incluye:
+• Análisis completo de mi situación actual
+• Proyección de pensión con y sin Modalidad 40  
+• Calendario de pagos mensuales
+• Recomendaciones personalizadas
+
+Generado con: Calculadora Modalidad 40 IMSS
+Fecha: ${new Date().toLocaleDateString('es-MX')}
+
+Saludos,
+${nombre} ${apellidoPaterno}`;
                             
                             // Descargar primero y mostrar instrucciones de email
                             const emailLink = document.createElement('a');
@@ -1797,9 +1827,34 @@
                             emailLink.click();
                             document.body.removeChild(emailLink);
                             
-                            // Preparar link de email
-                            const mailtoLink = `mailto:?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody + '\\n\\nNota: El archivo PDF se ha descargado. Adjúntalo manualmente a tu email.')}`;
-                            window.location.href = mailtoLink;
+                            // Esperar un momento y mostrar opciones de email
+                            setTimeout(() => {
+                                const emailChoice = confirm(`📧 ¡PDF descargado exitosamente!
+
+¿Cómo quieres enviarlo por email?
+
+✅ OK = Abrir tu cliente de email (Outlook, Gmail app, etc.)
+❌ Cancelar = Abrir Gmail web manualmente
+
+El PDF está en tu carpeta de Descargas listo para adjuntar.`);
+                                
+                                if (emailChoice) {
+                                    // Abrir cliente de email nativo
+                                    const mailtoLink = `mailto:?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
+                                    window.location.href = mailtoLink;
+                                } else {
+                                    // Abrir Gmail web
+                                    window.open('https://mail.google.com/mail/u/0/#inbox?compose=new', '_blank');
+                                    alert(`📧 Se ha abierto Gmail en una nueva pestaña.
+
+📋 Instrucciones:
+1. Haz clic en "Redactar" 
+2. Adjunta el PDF descargado
+3. Copia y pega este asunto: "${emailSubject}"
+
+💡 El PDF está en tu carpeta de Descargas.`);
+                                }
+                            }, 1000);
                             break;
                             
                         default:
@@ -1820,13 +1875,16 @@
                     
                     // Mensaje personalizado según el modo
                     const successMessages = {
-                        'download': '¡PDF descargado exitosamente!',
-                        'print': '¡PDF enviado a la impresora!',
-                        'preview': '¡Vista previa abierta en nueva ventana!',
-                        'email': '¡PDF descargado y email preparado!'
+                        'download': '✅ ¡PDF descargado exitosamente!\\n\\n📁 Revisa tu carpeta de Descargas para encontrar:\\n"' + filename + '"',
+                        'print': '🖨️ ¡PDF abierto para impresión!\\n\\nℹ️ Se abrió una nueva ventana con tu reporte listo para imprimir.',
+                        'preview': '👀 ¡Vista previa abierta!\\n\\n💡 Puedes imprimir desde la ventana nueva si te gusta el resultado.',
+                        'email': '📧 ¡Preparado para envío por email!\\n\\n📎 El PDF se descargó y las instrucciones de envío están listas.'
                     };
                     
-                    alert(successMessages[outputMode] || '¡Reporte PDF procesado exitosamente!');
+                    // Solo mostrar mensaje para download y preview (los otros tienen sus propias notificaciones)
+                    if (outputMode === 'download' || outputMode === 'preview') {
+                        alert(successMessages[outputMode] || '¡Reporte PDF procesado exitosamente!');
+                    }
                 } else {
                     throw new Error('Error al generar el reporte');
                 }
@@ -1844,18 +1902,67 @@
             modalNube.show();
         }
         
-        // Función para guardar en servicios de nube (futuro)
-        function guardarEnNube(servicio) {
+        // Función para guardar en servicios de nube
+        async function guardarEnNube(servicio) {
+            if (!resultadosCalculados) {
+                alert('Primero calcula tu pensión antes de guardar en la nube.');
+                return;
+            }
+
             const servicios = {
-                'google-drive': 'Google Drive',
-                'onedrive': 'Microsoft OneDrive', 
-                'dropbox': 'Dropbox'
+                'google-drive': {
+                    nombre: 'Google Drive',
+                    url: 'https://drive.google.com/drive/my-drive',
+                    icono: 'fab fa-google-drive text-success'
+                },
+                'onedrive': {
+                    nombre: 'Microsoft OneDrive',
+                    url: 'https://onedrive.live.com/',
+                    icono: 'fab fa-microsoft text-primary'
+                },
+                'dropbox': {
+                    nombre: 'Dropbox',
+                    url: 'https://www.dropbox.com/home',
+                    icono: 'fab fa-dropbox text-info'
+                }
             };
             
-            alert(`La integración con ${servicios[servicio] || servicio} estará disponible próximamente. Por ahora, descarga el PDF y súbelo manualmente.`);
-            
-            // Por ahora, descargar el PDF
-            generarReportePDF('download');
+            const servicioSeleccionado = servicios[servicio];
+            if (!servicioSeleccionado) {
+                alert('Servicio no reconocido');
+                return;
+            }
+
+            try {
+                // Primero generar y descargar el PDF
+                await generarReportePDF('download');
+                
+                // Esperar un momento para que el download termine
+                setTimeout(() => {
+                    // Abrir el servicio de nube en nueva pestaña
+                    window.open(servicioSeleccionado.url, '_blank');
+                    
+                    // Mostrar instrucciones
+                    const mensaje = `
+📱 ¡PDF descargado exitosamente!
+
+🔗 Se ha abierto ${servicioSeleccionado.nombre} en una nueva pestaña.
+
+📋 Pasos siguientes:
+1. Ve a la pestaña de ${servicioSeleccionado.nombre}
+2. Busca el botón "Subir archivo" o "Upload"  
+3. Selecciona el PDF descargado de tu carpeta de Descargas
+4. ¡Listo! Tu reporte estará guardado en la nube
+
+💡 Tip: Crea una carpeta específica para tus reportes de IMSS para mantenerlos organizados.
+                    `;
+                    
+                    alert(mensaje);
+                }, 1500);
+                
+            } catch (error) {
+                alert('Error al procesar el archivo para la nube: ' + error.message);
+            }
             
             // Cerrar modal de nube
             const modalNube = bootstrap.Modal.getInstance(document.getElementById('modalNube'));

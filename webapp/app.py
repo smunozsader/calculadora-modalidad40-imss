@@ -144,6 +144,11 @@ def calcular():
             return jsonify({
                 'error': 'Edad mínima para pensión: 60 años'
             }), 400
+        
+        if edad_pension > 65:
+            return jsonify({
+                'error': 'Edad máxima legal para pensión: 65 años (límite IMSS)'
+            }), 400
             
         if edad_pension <= edad_actual:
             return jsonify({
@@ -152,11 +157,9 @@ def calcular():
             
         # Verificar tiempo disponible para Modalidad 40
         años_disponibles = edad_pension - edad_actual
-        if años_disponibles < 5:
-            return jsonify({
-                'warning': f'Solo tienes {años_disponibles} años hasta pensionarte. Modalidad 40 requiere 5 años completos.',
-                'continuar': True
-            })
+        print(f"DEBUG: años_disponibles = {años_disponibles}")
+        
+        # Note: Allow calculation even with less than 5 years, but include warning in results
         
         # Calcular con la calculadora corregida
         print("DEBUG: Instanciando calculadora...")
@@ -176,7 +179,8 @@ def calcular():
             tiene_esposa=tiene_esposa,
             num_hijos_dependientes=num_hijos,
             tiene_padres_dependientes=tiene_padres,
-            año_inicio=año_inicio
+            año_inicio=año_inicio,
+            edad_actual=edad_actual
         )
         
         print("DEBUG: Cálculo completado:", type(resultado))
@@ -197,8 +201,16 @@ def calcular():
             print(f"DEBUG: ❌ Claves faltantes en resultado: {missing_keys}")
             return jsonify({'error': f'Error en cálculo - claves faltantes: {missing_keys}'}), 500
         
+        # Add warning for limited years
+        warning_msg = None
+        if años_disponibles < 2:
+            warning_msg = f"⚠️ Solo tienes {años_disponibles} año(s) disponible(s) para Modalidad 40. Los cálculos son válidos pero el período de inversión es limitado."
+        elif años_disponibles < 5:
+            warning_msg = f"⚠️ Tienes {años_disponibles} año(s) disponible(s) para Modalidad 40 (menos del óptimo de 5 años)."
+            
         respuesta = {
             'success': True,
+            'warning': warning_msg,
             'edad_info': {
                 'edad_actual': edad_actual,
                 'edad_pension': edad_pension,
@@ -225,7 +237,8 @@ def calcular():
                 'pago_mensual_imss': round(resultado['inversion']['promedio_mensual'], 0)
             },
             'inversion': {
-                'total_5_años': round(resultado['inversion']['total_5_años'], 0),
+                'total_años': round(resultado['inversion']['total_años'], 0),
+                'años_cotizados': resultado['inversion']['años_cotizados'],
                 'promedio_mensual': round(resultado['inversion']['promedio_mensual'], 0),
                 'desglose_anual': resultado['inversion']['desglose_anual']
             },
@@ -241,6 +254,15 @@ def calcular():
             'tope_maximo': calc.tope_diario_2025,
             'uma_2025': calc.uma_diaria_2025
         }
+        
+        # Add warning if less than 5 years available
+        if años_disponibles < 5:
+            respuesta['warning'] = {
+                'mensaje': f'Solo tienes {años_disponibles} años hasta pensionarte. Modalidad 40 normalmente requiere 5 años completos.',
+                'tipo': 'tiempo_limitado',
+                'mostrar': True,
+                'detalles': f'Con {años_disponibles} años tendrías {años_disponibles * 52} semanas adicionales en lugar de las 260 semanas ideales (5 años).'
+            }
         
         print("DEBUG: ✅ Respuesta formateada exitosamente")
         print("DEBUG: Keys de respuesta:", list(respuesta.keys()))

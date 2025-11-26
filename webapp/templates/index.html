@@ -232,7 +232,7 @@
                                             <div class="col-md-6 mb-3">
                                                 <label class="form-label">Edad de Jubilación Deseada *</label>
                                                 <input type="number" class="form-control" id="edad_jubilacion" 
-                                                       placeholder="Ej: 65" min="60" max="70" required>
+                                                       placeholder="Ej: 65" min="60" max="65" required>
                                                 <div class="form-text">Recomendado: 65 años (100% + 11% extra)</div>
                                             </div>
                                         </div>
@@ -331,7 +331,7 @@
                                                         <label class="form-label">¿A qué edad te quieres jubilar? *</label>
                                                         <div class="input-group">
                                                             <input type="number" class="form-control" id="edad_jubilacion_user" 
-                                                                   placeholder="Ej: 65" min="60" max="70" required
+                                                                   placeholder="Ej: 65" min="60" max="65" required
                                                                    oninput="calcularTiempoDisponibleUser()">
                                                             <span class="input-group-text">años</span>
                                                         </div>
@@ -488,7 +488,7 @@
                             <div class="card-body">
                                 <table class="table table-sm comparison-table">
                                     <tr>
-                                        <td><strong>Inversión Total (5 años):</strong></td>
+                                        <td><strong>Inversión Total:</strong><br><small class="text-muted">Calculada según años disponibles</small></td>
                                         <td class="text-end" id="inversion-total">$0</td>
                                     </tr>
                                     <tr>
@@ -996,21 +996,29 @@
                 // Sincronizar con el campo oculto para el backend
                 document.getElementById('edad_jubilacion').value = edadJubilacion;
                 
-                if (añosDisponibles <= 0) {
-                    alertDiv.className = 'alert alert-danger';
-                    textoSpan.innerHTML = '<strong>⚠️ Ya estás en edad de pensión.</strong> Consulta directamente con IMSS para opciones disponibles.';
+                if (edadJubilacion > 65) {
+                    alertDiv.className = 'alert alert-warning';
+                    textoSpan.innerHTML = '<strong>⚖️ LÍMITE LEGAL:</strong> La edad máxima para pensión IMSS es 65 años. Después de los 65, la pensión se otorga automáticamente por vejez.';
                     alertDiv.style.display = 'block';
-                } else if (añosDisponibles <= 2) {
+                } else if (añosDisponibles <= 0) {
+                    alertDiv.className = 'alert alert-info';
+                    textoSpan.innerHTML = '<strong>🎂 Ya tienes 65 años.</strong> Puedes solicitar tu pensión por vejez directamente con el IMSS.';
+                    alertDiv.style.display = 'block';
+                } else if (añosDisponibles === 1) {
                     alertDiv.className = 'alert alert-danger';
-                    textoSpan.innerHTML = `<strong>🚨 ¡CRÍTICO! Solo tienes ${añosDisponibles} ${añosDisponibles === 1 ? 'año' : 'años'}.</strong> Debes iniciar Modalidad 40 INMEDIATAMENTE.`;
+                    textoSpan.innerHTML = `<strong>⚡ ÚLTIMO AÑO!</strong> Solo tienes 1 año hasta los 65 años (límite legal). Modalidad 40 de 1 año puede <strong>mejorar significativamente tu pensión</strong>. ¡ACTÚA INMEDIATAMENTE!`;
+                    alertDiv.style.display = 'block';
+                } else if (añosDisponibles === 2) {
+                    alertDiv.className = 'alert alert-warning';
+                    textoSpan.innerHTML = `<strong>🚀 ¡OPORTUNIDAD EXCEPCIONAL!</strong> Solo 2 años hasta los 65 años (límite legal). Modalidad 40 de 2 años puede <strong>duplicar tu pensión</strong> con ROI superior al 200%. ¡Calcúlalo ahora!`;
                     alertDiv.style.display = 'block';
                 } else if (añosDisponibles <= 5) {
                     alertDiv.className = 'alert alert-warning';
-                    textoSpan.innerHTML = `<strong>⚠️ ¡URGENTE! Tienes ${añosDisponibles} años.</strong> Debes iniciar Modalidad 40 pronto para maximizar beneficios.`;
+                    textoSpan.innerHTML = `<strong>⚠️ ¡URGENTE! Solo ${añosDisponibles} años hasta los 65 años (límite legal).</strong> Debes iniciar Modalidad 40 pronto para maximizar beneficios.`;
                     alertDiv.style.display = 'block';
                 } else {
                     alertDiv.className = 'alert alert-success';
-                    textoSpan.innerHTML = `<strong>✅ Excelente! Tienes ${añosDisponibles} años disponibles.</strong> Puedes planear tu estrategia con calma.`;
+                    textoSpan.innerHTML = `<strong>✅ Excelente! Tienes ${añosDisponibles} años hasta los 65 años.</strong> Puedes planear tu estrategia con calma.`;
                     alertDiv.style.display = 'block';
                 }
             } else {
@@ -1038,14 +1046,26 @@
             if (edadActual && edadPension) {
                 const añosDisponibles = edadPension - edadActual;
                 
-                if (añosDisponibles > 5) {
+                if (edadPension > 65) {
+                    tiempoTexto.innerHTML = '⚖️ LÍMITE LEGAL: La edad máxima para pensión IMSS es 65 años. Después de los 65 años, la pensión se otorga automáticamente por vejez.';
+                    tiempoDiv.className = 'alert alert-warning mt-2';
+                } else if (añosDisponibles > 5) {
                     tiempoTexto.innerHTML = `Tienes ${añosDisponibles} años hasta pensionarte. Modalidad 40 dura 5 años, así que puedes empezar en ${5-añosDisponibles} años más.`;
                     tiempoDiv.className = 'alert alert-info mt-2';
-                } else if (añosDisponibles >= 1) {
-                    tiempoTexto.innerHTML = `Tienes ${añosDisponibles} años hasta pensionarte. ${añosDisponibles < 5 ? '⚠️ ¡URGENTE! Debes empezar Modalidad 40 YA.' : 'Tiempo perfecto para Modalidad 40.'}`;
-                    tiempoDiv.className = añosDisponibles < 5 ? 'alert alert-danger mt-2' : 'alert alert-success mt-2';
+                } else if (añosDisponibles === 1) {
+                    tiempoTexto.innerHTML = `⚡ ÚLTIMO AÑO: Solo tienes 1 año hasta los 65 años (límite legal). Modalidad 40 de 1 año puede mejorar significativamente tu pensión. ¡ACTÚA YA!`;
+                    tiempoDiv.className = 'alert alert-danger mt-2';
+                } else if (añosDisponibles >= 2 && añosDisponibles < 5) {
+                    tiempoTexto.innerHTML = `⚠️ ¡URGENTE! Solo tienes ${añosDisponibles} años hasta los 65 años (límite legal). Debes empezar Modalidad 40 YA.`;
+                    tiempoDiv.className = 'alert alert-danger mt-2';
+                } else if (añosDisponibles === 5) {
+                    tiempoTexto.innerHTML = `✅ PERFECTO: Tienes exactamente 5 años hasta los 65 años. Tiempo ideal para Modalidad 40 completa.`;
+                    tiempoDiv.className = 'alert alert-success mt-2';
+                } else if (añosDisponibles === 0) {
+                    tiempoTexto.innerHTML = '🎂 Ya tienes 65 años. Puedes solicitar tu pensión por vejez directamente con el IMSS.';
+                    tiempoDiv.className = 'alert alert-info mt-2';
                 } else {
-                    tiempoTexto.innerHTML = '⚠️ Ya estás en edad de pensión. Consulta otras opciones con el IMSS.';
+                    tiempoTexto.innerHTML = '⚠️ Ya pasaste la edad de pensión legal. Consulta el IMSS.';
                     tiempoDiv.className = 'alert alert-danger mt-2';
                 }
                 
@@ -1163,6 +1183,14 @@
                 return;
             }
             
+            const edadPension = parseInt(formData.edad_pension);
+            if (edadPension > 65) {
+                alert('⚖️ LÍMITE LEGAL: La edad máxima para pensión IMSS es 65 años.\n\nDespués de los 65 años, la pensión se otorga automáticamente por vejez.');
+                document.querySelector('.loading').style.display = 'none';
+                document.querySelector('button[type="submit"]').style.display = 'block';
+                return;
+            }
+            
             try {
                 // Enviar petición con fallback handling
                 console.log('🚀 Enviando petición a /calcular...');
@@ -1232,6 +1260,13 @@
                     return;
                 }
                 
+                // Handle warnings with partial calculations (like limited years)
+                if (response.ok && resultado && resultado.warning && resultado.sin_modalidad40) {
+                    console.log('⚠️ Calculation successful with warnings, showing results...');
+                    mostrarResultados(resultado);
+                    return;
+                }
+                
                 // Enhanced error reporting for failed responses
                 console.group('🚨 COMPREHENSIVE ERROR ANALYSIS');
                 console.log('❌ Response Details:');
@@ -1292,6 +1327,20 @@
                 return;
             }
             
+            // Show warning if present
+            if (resultado.warning && resultado.warning.mostrar) {
+                const warningHtml = `
+                    <div class="alert alert-warning mb-4" role="alert">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Aviso Importante:</strong> ${resultado.warning.mensaje}
+                        <br><small class="text-muted">${resultado.warning.detalles}</small>
+                    </div>
+                `;
+                // Insert warning at the top of results
+                const resultadosDiv = document.getElementById('resultados');
+                resultadosDiv.insertAdjacentHTML('afterbegin', warningHtml);
+            }
+            
             // Verificar que los elementos existen antes de usarlos
             const mensajeInicial = document.getElementById('mensaje-inicial');
             const resultadosDiv = document.getElementById('resultados');
@@ -1344,7 +1393,7 @@
             document.getElementById('pago-mensual-imss').textContent = '$' + formatearNumero(resultado.inversion.promedio_mensual);
             
             // Análisis de inversión
-            document.getElementById('inversion-total').textContent = '$' + formatearNumero(resultado.inversion.total_5_años);
+            document.getElementById('inversion-total').textContent = '$' + formatearNumero(resultado.inversion.total_años);
             document.getElementById('incremento-anual').textContent = '$' + formatearNumero(resultado.analisis_roi.diferencia_anual);
             document.getElementById('roi-anual').textContent = resultado.analisis_roi.roi_anual + '%';
             document.getElementById('recuperacion').textContent = resultado.analisis_roi.años_recuperacion + ' años';
@@ -1441,7 +1490,7 @@
             document.getElementById('pago-mensual-imss').textContent = '$' + formatearNumero(resultado.inversion.promedio_mensual);
             
             // Análisis de inversión
-            document.getElementById('inversion-total').textContent = '$' + formatearNumero(resultado.inversion.total_5_años);
+            document.getElementById('inversion-total').textContent = '$' + formatearNumero(resultado.inversion.total_años);
             document.getElementById('incremento-anual').textContent = '$' + formatearNumero(resultado.analisis_roi.diferencia_anual);
             document.getElementById('roi-anual').textContent = resultado.analisis_roi.roi_anual + '%';
             document.getElementById('recuperacion').textContent = resultado.analisis_roi.años_recuperacion + ' años';

@@ -167,6 +167,43 @@ class CalculadoraModalidad40Corregida:
         
         return resultado
     
+    def calcular_inversion_total_años(self, sbc_diario: float, año_inicio: int = 2025, años_cotizar: int = 5) -> Dict:
+        """
+        Calcular inversión total durante el número de años especificado
+        
+        Args:
+            sbc_diario: SBC diario deseado
+            año_inicio: Año de inicio (default 2025)
+            años_cotizar: Número de años a cotizar (default 5, puede ser menor)
+            
+        Returns:
+            Dictionary con desglose anual y total
+        """
+        resultado = {
+            'desglose_anual': {},
+            'total_años': 0,
+            'promedio_mensual': 0,
+            'años_cotizados': años_cotizar
+        }
+        
+        total = 0
+        for i in range(años_cotizar):
+            año = año_inicio + i
+            costo_mensual = self.calcular_costo_mensual(sbc_diario, año)
+            costo_anual = costo_mensual * 12
+            total += costo_anual
+            
+            resultado['desglose_anual'][año] = {
+                'tasa_pct': self.tasas_modalidad40[año],
+                'costo_mensual': costo_mensual,
+                'costo_anual': costo_anual
+            }
+        
+        resultado['total_años'] = total
+        resultado['promedio_mensual'] = total / (años_cotizar * 12)
+        
+        return resultado
+    
     def calcular_pension_ley73_corregida(self, 
                                        semanas_cotizadas: int,
                                        sdp_diario: float,
@@ -314,7 +351,8 @@ class CalculadoraModalidad40Corregida:
                                   tiene_esposa: bool = False,
                                   num_hijos_dependientes: int = 0,
                                   tiene_padres_dependientes: bool = False,
-                                  año_inicio: int = 2025) -> Dict:
+                                  año_inicio: int = 2025,
+                                  edad_actual: int = None) -> Dict:
         """
         Calcular escenario completo con TABLAS VARIABLES: situación actual vs con Modalidad 40
         
@@ -337,6 +375,12 @@ class CalculadoraModalidad40Corregida:
                 'error': f'SBC de ${sbc_modalidad40_diario:.2f} excede tope máximo de ${self.tope_diario_2025:.2f}'
             }
         
+        # Validar límite legal de edad (65 años máximo para pensión IMSS)
+        if edad_pension > 65:
+            return {
+                'error': f'Edad máxima legal para pensión IMSS: 65 años. Edad solicitada: {edad_pension} años.'
+            }
+        
         # ESCENARIO SIN MODALIDAD 40
         semanas_finales_sin_mod40 = semanas_cotizadas_actuales  # No cotiza más
         pension_sin_mod40 = self.calcular_pension_ley73_corregida(
@@ -344,8 +388,18 @@ class CalculadoraModalidad40Corregida:
             tiene_esposa, num_hijos_dependientes, tiene_padres_dependientes
         )
         
-        # ESCENARIO CON MODALIDAD 40 (5 años = 260 semanas)
-        semanas_finales_con_mod40 = semanas_cotizadas_actuales + 260
+        # ESCENARIO CON MODALIDAD 40 (calcular semanas según años disponibles)
+        # Calcular años reales disponibles desde edad actual hasta pensión
+        if edad_actual is not None:
+            años_disponibles = edad_pension - edad_actual
+        else:
+            # Fallback: asumir se retira a los 65 (máximo común)
+            años_disponibles = max(1, 65 - edad_pension) if edad_pension < 65 else 1
+        
+        # Modalidad 40 permite máximo 5 años, pero debe permitir mínimo 1 año
+        años_para_modalidad40 = max(1, min(5, años_disponibles))
+        semanas_modalidad40 = años_para_modalidad40 * 52
+        semanas_finales_con_mod40 = semanas_cotizadas_actuales + semanas_modalidad40
         
         # Calcular nuevo SDP (promedio últimas 250 semanas)
         # Asumiendo que las 250 semanas incluyen principalmente Modalidad 40
@@ -367,18 +421,18 @@ class CalculadoraModalidad40Corregida:
             tiene_esposa, num_hijos_dependientes, tiene_padres_dependientes
         )
         
-        # ANÁLISIS DE INVERSIÓN
-        inversion_mod40 = self.calcular_inversion_total_5_años(sbc_modalidad40_diario, año_inicio)
+        # ANÁLISIS DE INVERSIÓN (usar años reales disponibles)
+        inversion_mod40 = self.calcular_inversion_total_años(sbc_modalidad40_diario, año_inicio, años_para_modalidad40)
         
         # ANÁLISIS ROI
         diferencia_mensual = pension_con_mod40['pension_final_mensual'] - pension_sin_mod40['pension_final_mensual']
         diferencia_anual = diferencia_mensual * 12
         
         # ROI simple anual
-        roi_anual = (diferencia_anual / inversion_mod40['total_5_años']) * 100
+        roi_anual = (diferencia_anual / inversion_mod40['total_años']) * 100
         
         # Período de recuperación
-        años_recuperacion = inversion_mod40['total_5_años'] / diferencia_anual
+        años_recuperacion = inversion_mod40['total_años'] / diferencia_anual
         
         return {
             'inputs': {

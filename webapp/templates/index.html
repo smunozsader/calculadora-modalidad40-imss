@@ -777,9 +777,14 @@
                 </div>
                 <div class="modal-footer">
                     <div class="d-flex justify-content-between w-100">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                            <i class="fas fa-times me-2"></i>Cancelar
-                        </button>
+                        <div>
+                            <button type="button" class="btn btn-warning btn-sm" onclick="testPDF()" title="Generar PDF con datos de ejemplo para debugging">
+                                <i class="fas fa-bug me-2"></i>Test PDF
+                            </button>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                <i class="fas fa-times me-2"></i>Cancelar
+                            </button>
+                        </div>
                         
                         <div class="btn-group">
                             <!-- Dropdown para opciones de salida -->
@@ -1938,6 +1943,25 @@ El PDF está en tu carpeta de Descargas listo para adjuntar.`);
         function mostrarOpcionesNube() {
             const modalNube = new bootstrap.Modal(document.getElementById('modalNube'));
             modalNube.show();
+        }
+        
+        // Función para probar PDF con datos de ejemplo (debugging)
+        function testPDF() {
+            console.log('🧪 Iniciando test de PDF con datos de ejemplo...');
+            
+            // Llenar datos de ejemplo en el modal
+            document.getElementById('modal_nombre').value = 'Juan';
+            document.getElementById('modal_apellido_paterno').value = 'Pérez';
+            document.getElementById('modal_apellido_materno').value = 'López';
+            
+            // Verificar que hay resultados calculados
+            if (!resultadosCalculados) {
+                alert('❌ Primero calcula tu pensión. El test de PDF necesita resultados.');
+                return;
+            }
+            
+            console.log('✅ Datos de ejemplo cargados, intentando generar PDF...');
+            generarReportePDF('download');
         }
         
         // Función para guardar en servicios de nube

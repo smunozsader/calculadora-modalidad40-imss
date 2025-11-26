@@ -359,7 +359,7 @@ def test_calculator():
             'sample_result': {
                 'sin_mod40_pension': resultado['sin_modalidad40']['pension_final_mensual'],
                 'con_mod40_pension': resultado['con_modalidad40']['pension_final_mensual'],
-                'inversion_total': resultado['inversion']['total_5_años'],
+                'inversion_total': resultado['inversion']['total_años'],
                 'roi_anual': resultado['analisis_roi']['roi_anual_pct']
             }
         })
@@ -566,7 +566,7 @@ def generar_reporte_pdf():
         
         inversion_data = [
             ['Concepto', 'Valor'],
-            ['Inversión Total (5 años)', f"${resultados['inversion']['total_5_años']:,.0f}"],
+            ['Inversión Total (5 años)', f"${resultados['inversion']['total_años']:,.0f}"],
             ['Pago Mensual Promedio', f"${resultados['inversion']['promedio_mensual']:,.0f}"],
             ['ROI Anual', f"{resultados['analisis_roi']['roi_anual']:.1f}%"],
             ['Período de Recuperación', f"{resultados['analisis_roi']['años_recuperacion']:.1f} años"]

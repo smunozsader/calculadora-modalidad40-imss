@@ -8,11 +8,13 @@ This file starts the Flask app from the root directory
 import sys
 import os
 
-# Add paths to ensure imports work
+# Add paths to ensure imports work - go UP one level from deployment/
 current_dir = os.path.dirname(os.path.abspath(__file__))
-webapp_path = os.path.join(current_dir, 'webapp')
-calculadora_path = os.path.join(current_dir, 'calculadoras-python')
+root_dir = os.path.dirname(current_dir)  # Go up to project root
+webapp_path = os.path.join(root_dir, 'webapp')
+calculadora_path = os.path.join(root_dir, 'calculadoras-python')
 
+sys.path.insert(0, root_dir)
 sys.path.insert(0, webapp_path)
 sys.path.insert(0, calculadora_path)
 
@@ -27,7 +29,7 @@ try:
         host = os.environ.get('HOST', '0.0.0.0')
         
         print(f"🚀 Starting Flask app on {host}:{port}")
-        print(f"📂 Current directory: {current_dir}")
+        print(f"📂 Root directory: {root_dir}")
         print(f"📂 Webapp path: {webapp_path}")
         print(f"📂 Calculadora path: {calculadora_path}")
         

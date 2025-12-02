@@ -97,7 +97,21 @@ When updating deployment configuration:
 - **Dockerfile changes**: Edit `deployment/Dockerfile`
 - **Dependencies**: Update root `requirements.txt` (not `deployment/requirements.txt`)
 - **Entry point**: `deployment/main.py` must import and expose `webapp.app`
+  - **CRITICAL**: `deployment/main.py` is ONE LEVEL DOWN from project root
+  - Must use `os.path.dirname(current_dir)` to go UP to root directory
+  - Then navigate to `webapp/` and `calculadoras-python/` from root
+  - Common error: `ModuleNotFoundError: No module named 'app'` means paths are wrong
 - **Environment variables**: Configure in Railway dashboard, not in code
+- **Path structure**:
+  ```python
+  # ✅ CORRECT (in deployment/main.py):
+  current_dir = os.path.dirname(os.path.abspath(__file__))  # /app/deployment
+  root_dir = os.path.dirname(current_dir)                    # /app (project root)
+  webapp_path = os.path.join(root_dir, 'webapp')            # /app/webapp
+  
+  # ❌ WRONG:
+  webapp_path = os.path.join(current_dir, 'webapp')  # Would be /app/deployment/webapp (doesn't exist!)
+  ```
 
 When updating requirements documentation:
 1. Verify current IMSS regulations (they change frequently)

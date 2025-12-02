@@ -203,7 +203,8 @@ def calcular():
         
         print("DEBUG: Iniciando cálculo con parámetros:", {
             'semanas': semanas_cotizadas, 'sdp_actual': sdp_actual, 
-            'sbc_modalidad40': sbc_modalidad40, 'edad_pension': edad_pension
+            'sbc_modalidad40': sbc_modalidad40, 'edad_pension': edad_pension,
+            'edad_actual': edad_actual, 'mes_nacimiento': mes_inicio_cotizacion
         })
         
         resultado = calc.calcular_escenario_completo(
@@ -215,7 +216,9 @@ def calcular():
             num_hijos_dependientes=num_hijos,
             tiene_padres_dependientes=tiene_padres,
             año_inicio=año_inicio,
-            edad_actual=edad_actual
+            edad_actual=edad_actual,
+            mes_nacimiento=mes_inicio_cotizacion,  # ✅ CRÍTICO: mes de nacimiento para calcular meses exactos
+            mes_inicio_modalidad40=1  # Asume inicio en enero (puede ser configurable después)
         )
         
         print("DEBUG: Cálculo completado:", type(resultado))

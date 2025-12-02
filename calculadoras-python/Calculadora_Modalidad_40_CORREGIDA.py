@@ -57,18 +57,19 @@ class CalculadoraModalidad40Corregida:
             2030: 3.40
         }
         
-        # Tablas oficiales de tasas Modalidad 40 (incremento anual)
+        # Tablas oficiales de tasas Modalidad 40 (publicadas por IMSS)
+        # Fuente: Ley del Seguro Social - Incremento gradual hasta 2030
         self.tasas_modalidad40 = {
-            2021: 10.075,
-            2022: 10.075,
-            2023: 11.166,
-            2024: 12.256,
+            2021: 10.08,
+            2022: 10.08,
+            2023: 11.17,
+            2024: 12.26,
             2025: 13.347,
             2026: 14.438,
             2027: 15.528,
             2028: 16.619,
             2029: 17.709,
-            2030: 18.000
+            2030: 18.800
         }
         
         # TABLAS REALES DE PORCENTAJES VARIABLES LEY 73

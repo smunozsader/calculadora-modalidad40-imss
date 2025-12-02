@@ -20,5 +20,5 @@ ENV PORT=8080
 # Expose port
 EXPOSE 8080
 
-# Start gunicorn with the deployment entry point
-CMD ["gunicorn", "deployment.main:app", "--host", "0.0.0.0", "--port", "8080", "--workers", "1"]
+# Start gunicorn with the main entry point (root level)
+CMD ["gunicorn", "main:app", "--host", "0.0.0.0", "--port", "8080", "--workers", "1"]

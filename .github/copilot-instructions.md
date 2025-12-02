@@ -2,7 +2,45 @@
 
 ## Project Overview
 
-This is a personal documentation and tracking project for IMSS (Instituto Mexicano del Seguro Social) Modalidad 40 requirements and contribution weeks analysis. The project focuses on documenting eligibility requirements, tracking contribution history, and managing Mexican social security documentation.
+This is a personal documentation and tracking project for IMSS (Instituto Mexicano del Seguro Social) Modalidad 40 requirements and contribution weeks analysis. The project includes:
+- Documentation of eligibility requirements and contribution history
+- Python calculators for pension projections under Ley 73
+- Flask web application for interactive Modalidad 40 calculations
+- **Live deployment**: https://web-production-9372ec.up.railway.app/
+
+## Deployment Configuration
+
+### Railway Platform
+- **Production URL**: https://web-production-9372ec.up.railway.app/
+- **Platform**: Railway.app
+- **Deployment method**: Dockerfile-based build
+- **Repository**: smunozsader/calculadora-modalidad40-imss
+- **Branch**: main (auto-deploys on push)
+
+### File Structure for Deployment
+```
+/deployment/
+  ├── Dockerfile          # Build configuration
+  ├── main.py            # Railway entry point (imports webapp.app)
+  ├── Procfile           # Process definition: gunicorn main:app
+  └── railway.json       # Railway-specific config
+  
+/webapp/
+  ├── app.py            # Main Flask application
+  ├── templates/        # HTML templates
+  └── static/           # CSS, JS, images
+  
+/calculadoras-python/   # Core calculation logic
+  └── Calculadora_Modalidad_40_CORREGIDA.py
+```
+
+### Key Technical Details
+- **Web framework**: Flask 3.1.2
+- **WSGI server**: Gunicorn 21.2.0
+- **PDF generation**: ReportLab 4.0.7
+- **Entry point**: `deployment/main.py` exposes Flask app for gunicorn
+- **Health check**: Configured on `/` with 120s timeout
+- **Restart policy**: ON_FAILURE with max 10 retries
 
 ## Key Context & Domain Knowledge
 
@@ -47,6 +85,20 @@ When documenting IMSS requirements, always structure as:
 
 ## Common Tasks
 
+### Web Application Development
+When working on the Flask app (`webapp/app.py`):
+- Test locally before deploying: `cd webapp && python app.py`
+- Changes to `main` branch auto-deploy to Railway
+- Check deployment logs for debugging
+- Ensure imports work from both local and deployment contexts
+
+### Deployment Tasks
+When updating deployment configuration:
+- **Dockerfile changes**: Edit `deployment/Dockerfile`
+- **Dependencies**: Update root `requirements.txt` (not `deployment/requirements.txt`)
+- **Entry point**: `deployment/main.py` must import and expose `webapp.app`
+- **Environment variables**: Configure in Railway dashboard, not in code
+
 When updating requirements documentation:
 1. Verify current IMSS regulations (they change frequently)
 2. Include specific threshold numbers (weeks, years, salary multiples)
@@ -60,6 +112,16 @@ When working with contribution data:
 
 ## Key Files
 
+### Deployment & Application
+- `deployment/main.py`: Railway entry point that imports Flask app
+- `deployment/Dockerfile`: Container build configuration
+- `deployment/Procfile`: Process definition for gunicorn
+- `deployment/railway.json`: Railway platform configuration
+- `webapp/app.py`: Main Flask application
+- `calculadoras-python/Calculadora_Modalidad_40_CORREGIDA.py`: Core calculation engine
+- `requirements.txt`: Python dependencies (root level)
+
+### Documentation
 - `Requisitos Modalidad 40.md`: Core eligibility requirements for voluntary contributions
 - `MUMS640728UQ0 reporteSemanasCotizadas.pdf`: Official contribution history report
 - Directory structure follows year-based organization for pension planning periods

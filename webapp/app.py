@@ -246,6 +246,7 @@ def calcular():
         respuesta = {
             'success': True,
             'warning': warning_msg,
+            'semanas_cotizadas': semanas_cotizadas,  # ✅ AGREGADO para PDF
             'edad_info': {
                 'edad_actual': edad_actual,
                 'edad_pension': edad_pension,
@@ -260,7 +261,11 @@ def calcular():
                 'pension_total': round(resultado['sin_modalidad40']['pension_final_mensual'], 0),
                 'cuantia_pct': round(resultado['sin_modalidad40']['cuantia_basica_pct'], 2),
                 'incremento_pct': round(resultado['sin_modalidad40']['incremento_anual_pct'], 2),
-                'multiple_uma': round(resultado['sin_modalidad40']['multiple_uma'], 2)
+                'multiple_uma': round(resultado['sin_modalidad40']['multiple_uma'], 2),
+                'sdp_diario': round(sdp_actual, 2),  # ✅ AGREGADO para PDF
+                'cuantia_basica_diaria': round(resultado['sin_modalidad40'].get('cuantia_basica_diaria', 0), 2),  # ✅ AGREGADO para PDF
+                'cuantia_basica_mensual': round(resultado['sin_modalidad40'].get('cuantia_basica_mensual', 0), 2),  # ✅ AGREGADO para PDF
+                'porcentaje_aplicable': round(resultado['sin_modalidad40'].get('porcentaje_aplicable', 0), 2)  # ✅ AGREGADO para PDF
             },
             'con_modalidad40': {
                 'pension_base': round(resultado['con_modalidad40']['pension_base_mensual'], 0),
@@ -269,7 +274,11 @@ def calcular():
                 'cuantia_pct': round(resultado['con_modalidad40']['cuantia_basica_pct'], 2),
                 'incremento_pct': round(resultado['con_modalidad40']['incremento_anual_pct'], 2),
                 'multiple_uma': round(resultado['con_modalidad40']['multiple_uma'], 2),
-                'pago_mensual_imss': round(resultado['inversion']['promedio_mensual'], 0)
+                'pago_mensual_imss': round(resultado['inversion']['promedio_mensual'], 0),
+                'sdp_diario': round(sbc_modalidad40, 2),  # ✅ AGREGADO para PDF  
+                'cuantia_basica_diaria': round(resultado['con_modalidad40'].get('cuantia_basica_diaria', 0), 2),  # ✅ AGREGADO para PDF
+                'cuantia_basica_mensual': round(resultado['con_modalidad40'].get('cuantia_basica_mensual', 0), 2),  # ✅ AGREGADO para PDF
+                'porcentaje_aplicable': round(resultado['con_modalidad40'].get('porcentaje_aplicable', 0), 2)  # ✅ AGREGADO para PDF
             },
             'inversion': {
                 'total_años': round(resultado['inversion']['total_años'], 0),

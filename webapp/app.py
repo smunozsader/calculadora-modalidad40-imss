@@ -24,11 +24,12 @@ from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
 
 # Importar la calculadora corregida - con debugging
 calculator_path = os.path.join(os.path.dirname(__file__), '..', 'calculadoras-python')
-print(f"DEBUG: Agregando path del calculadora: {calculator_path}")
-print(f"DEBUG: Path absoluto: {os.path.abspath(calculator_path)}")
-print(f"DEBUG: Path existe: {os.path.exists(calculator_path)}")
+calculator_path_abs = os.path.abspath(calculator_path)
+print(f"DEBUG: Agregando path de calculadora: {calculator_path_abs}")
+print(f"DEBUG: Path existe: {os.path.exists(calculator_path_abs)}")
 
-sys.path.append(calculator_path)
+# CRÍTICO: Agregar al sys.path ANTES de importar
+sys.path.insert(0, calculator_path_abs)
 
 # Configurar locale en español para nombres de meses
 try:

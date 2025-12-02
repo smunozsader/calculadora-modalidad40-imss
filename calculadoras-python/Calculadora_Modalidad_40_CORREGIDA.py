@@ -167,14 +167,15 @@ class CalculadoraModalidad40Corregida:
         # Si no encuentra (no debería pasar), usar los más altos
         return (0.13, 0.0245)  # 13% y 2.45%
     
-    def calcular_costo_mensual(self, sbc_diario: float, año: int) -> float:
+    def calcular_costo_mensual(self, sbc_diario: float, año: int, dias_mes: int = 30) -> float:
         """
         Calcular el costo mensual de Modalidad 40 para un SBC y año dados
-        ACTUALIZADO: Considera incrementos UMA anuales
+        ACTUALIZADO: Considera incrementos UMA anuales y días reales del mes
         
         Args:
             sbc_diario: Salario Base de Cotización diario deseado
             año: Año de cotización
+            dias_mes: Días del mes a calcular (default 30)
             
         Returns:
             Costo mensual en pesos
@@ -190,7 +191,8 @@ class CalculadoraModalidad40Corregida:
         multiple_uma = sbc_diario / uma_2025  # Múltiplo UMA deseado
         sbc_ajustado = multiple_uma * uma_año  # SBC en pesos del año
         
-        sbc_mensual = sbc_ajustado * 30.4  # Promedio días por mes
+        # CORREGIDO: Usar días reales del mes, no promedio 30.4
+        sbc_mensual = sbc_ajustado * dias_mes
         tasa = self.tasas_modalidad40[año] / 100
         return sbc_mensual * tasa
     

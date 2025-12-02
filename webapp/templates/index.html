@@ -271,6 +271,43 @@
                                         <div id="elegibilidad-resultado" style="display: none;">
                                             <!-- Se llena dinámicamente con JavaScript -->
                                         </div>
+
+                                        <!-- Última fecha de cotización - CRÍTICO -->
+                                        <div class="mb-3 mt-4">
+                                            <label class="form-label">
+                                                <i class="fas fa-calendar-times me-2"></i>¿Cuándo fue tu ÚLTIMA cotización al IMSS? *
+                                            </label>
+                                            <div class="alert alert-warning mb-2">
+                                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                                <strong>MUY IMPORTANTE:</strong> Tienes máximo <strong>5 años</strong> desde tu última cotización para inscribirte en Modalidad 40.
+                                                Si ya pasaron más de 5 años, <strong>perdiste el derecho para siempre</strong>.
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-md-6 mb-2">
+                                                    <select class="form-select" id="mes_ultima_cotizacion" required onchange="calcularFechaLimite()">
+                                                        <option value="">Selecciona mes</option>
+                                                        <option value="1">Enero</option><option value="2">Febrero</option><option value="3">Marzo</option>
+                                                        <option value="4">Abril</option><option value="5">Mayo</option><option value="6">Junio</option>
+                                                        <option value="7">Julio</option><option value="8">Agosto</option><option value="9">Septiembre</option>
+                                                        <option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-6 mb-2">
+                                                    <input type="number" class="form-control" id="año_ultima_cotizacion" 
+                                                           placeholder="Año" min="1990" max="2025" required onchange="calcularFechaLimite()">
+                                                </div>
+                                            </div>
+                                            <div class="form-text">
+                                                <i class="fas fa-info-circle me-1"></i>
+                                                Esta es la última vez que cotizaste al IMSS (cuando dejaste de trabajar o te dieron de baja).
+                                                La encuentras en tu Constancia de Semanas Cotizadas.
+                                            </div>
+                                            
+                                            <!-- Alerta de fecha límite -->
+                                            <div id="fecha-limite-alerta" class="mt-3" style="display: none;">
+                                                <!-- Se llena dinámicamente -->
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -1059,6 +1096,96 @@
                 `;
                 datosImssCard.style.display = 'none';
                 console.log('❌ Usuario NO elegible para Modalidad 40');
+            }
+        }
+        
+        // Función CRÍTICA para calcular fecha límite de inscripción Modalidad 40
+        function calcularFechaLimite() {
+            const mes = document.getElementById('mes_ultima_cotizacion').value;
+            const año = document.getElementById('año_ultima_cotizacion').value;
+            const alertaDiv = document.getElementById('fecha-limite-alerta');
+            
+            if (!mes || !año) {
+                alertaDiv.style.display = 'none';
+                return;
+            }
+            
+            const fechaUltimaCotizacion = new Date(parseInt(año), parseInt(mes) - 1, 1);
+            const fechaLimite = new Date(parseInt(año) + 5, parseInt(mes) - 1, 1); // 5 años después
+            const hoy = new Date();
+            
+            // Calcular días hasta la fecha límite
+            const diasRestantes = Math.floor((fechaLimite - hoy) / (1000 * 60 * 60 * 24));
+            const mesesRestantes = Math.floor(diasRestantes / 30);
+            
+            console.log(`📅 Última cotización: ${obtenerNombreMes(mes)} ${año}`);
+            console.log(`⏰ Fecha límite: ${obtenerNombreMes(mes)} ${parseInt(año) + 5}`);
+            console.log(`⏳ Días restantes: ${diasRestantes}`);
+            
+            alertaDiv.style.display = 'block';
+            
+            if (diasRestantes < 0) {
+                // YA PASÓ EL LÍMITE - Perdió el derecho
+                alertaDiv.innerHTML = `
+                    <div class="alert alert-danger">
+                        <h6><i class="fas fa-times-circle me-2"></i>FECHA LÍMITE VENCIDA</h6>
+                        <p class="mb-2">
+                            Tu última cotización fue en <strong>${obtenerNombreMes(mes)} ${año}</strong>.<br>
+                            La fecha límite para inscribirte era <strong>${obtenerNombreMes(mes)} ${parseInt(año) + 5}</strong>.
+                        </p>
+                        <p class="mb-0 fw-bold text-danger">
+                            ❌ Has perdido el derecho a Modalidad 40 de forma PERMANENTE.
+                        </p>
+                        <small class="text-muted">No hay forma de recuperar este derecho una vez vencido el plazo de 5 años.</small>
+                    </div>
+                `;
+            } else if (diasRestantes < 60) {
+                // MENOS DE 2 MESES - URGENTE
+                alertaDiv.innerHTML = `
+                    <div class="alert alert-danger">
+                        <h6><i class="fas fa-exclamation-triangle me-2"></i>¡URGENTE! TIEMPO CRÍTICO</h6>
+                        <p class="mb-2">
+                            Tu última cotización fue en <strong>${obtenerNombreMes(mes)} ${año}</strong>.<br>
+                            Fecha límite para inscribirte: <strong>${obtenerNombreMes(mes)} ${parseInt(año) + 5}</strong>
+                        </p>
+                        <p class="mb-0 fw-bold text-danger">
+                            ⚠️ Solo te quedan ${diasRestantes} días (${mesesRestantes} ${mesesRestantes === 1 ? 'mes' : 'meses'})
+                        </p>
+                        <small class="fw-bold">DEBES INSCRIBIRTE INMEDIATAMENTE o perderás el derecho para siempre.</small>
+                    </div>
+                `;
+            } else if (diasRestantes < 180) {
+                // MENOS DE 6 MESES - ALERTA
+                alertaDiv.innerHTML = `
+                    <div class="alert alert-warning">
+                        <h6><i class="fas fa-clock me-2"></i>TIEMPO LIMITADO</h6>
+                        <p class="mb-2">
+                            Tu última cotización fue en <strong>${obtenerNombreMes(mes)} ${año}</strong>.<br>
+                            Fecha límite para inscribirte: <strong>${obtenerNombreMes(mes)} ${parseInt(año) + 5}</strong>
+                        </p>
+                        <p class="mb-0 fw-bold text-warning">
+                            ⚠️ Te quedan ${Math.floor(diasRestantes / 30)} meses (${diasRestantes} días)
+                        </p>
+                        <small>Recomendación: Planifica tu inscripción pronto para evitar imprevistos.</small>
+                    </div>
+                `;
+            } else {
+                // MÁS DE 6 MESES - OK
+                const añosRestantes = Math.floor(diasRestantes / 365);
+                const mesesExtra = Math.floor((diasRestantes % 365) / 30);
+                alertaDiv.innerHTML = `
+                    <div class="alert alert-success">
+                        <h6><i class="fas fa-check-circle me-2"></i>Aún tienes tiempo</h6>
+                        <p class="mb-2">
+                            Tu última cotización fue en <strong>${obtenerNombreMes(mes)} ${año}</strong>.<br>
+                            Fecha límite para inscribirte: <strong>${obtenerNombreMes(mes)} ${parseInt(año) + 5}</strong>
+                        </p>
+                        <p class="mb-0 fw-bold text-success">
+                            ✅ Te quedan ${añosRestantes} años y ${mesesExtra} meses
+                        </p>
+                        <small>Puedes planificar con calma, pero no dejes pasar el tiempo.</small>
+                    </div>
+                `;
             }
         }
         

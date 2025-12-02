@@ -95,23 +95,34 @@ When working on the Flask app (`webapp/app.py`):
 ### Deployment Tasks
 When updating deployment configuration:
 - **Dockerfile changes**: Edit `deployment/Dockerfile`
+  - Include locale installation for Spanish support (es_ES.UTF-8, es_MX.UTF-8)
+  - Required for proper month names in PDFs
 - **Dependencies**: Update root `requirements.txt` (not `deployment/requirements.txt`)
-- **Entry point**: `deployment/main.py` must import and expose `webapp.app`
-  - **CRITICAL**: `deployment/main.py` is ONE LEVEL DOWN from project root
-  - Must use `os.path.dirname(current_dir)` to go UP to root directory
-  - Then navigate to `webapp/` and `calculadoras-python/` from root
-  - Common error: `ModuleNotFoundError: No module named 'app'` means paths are wrong
+- **Entry point**: Root `main.py` imports and exposes `webapp.app`
 - **Environment variables**: Configure in Railway dashboard, not in code
-- **Path structure**:
+
+**CRITICAL - Module Import Structure:**
+- **Root cause of ModuleNotFoundError**: `webapp/app.py` MUST configure sys.path BEFORE importing calculadora
+- Each module must handle its own imports - don't rely on parent to configure paths
+- Pattern to follow in `webapp/app.py`:
   ```python
-  # ✅ CORRECT (in deployment/main.py):
-  current_dir = os.path.dirname(os.path.abspath(__file__))  # /app/deployment
-  root_dir = os.path.dirname(current_dir)                    # /app (project root)
-  webapp_path = os.path.join(root_dir, 'webapp')            # /app/webapp
+  # ✅ CORRECT - Configure path BEFORE import:
+  calculator_path = os.path.join(os.path.dirname(__file__), '..', 'calculadoras-python')
+  calculator_path_abs = os.path.abspath(calculator_path)
+  sys.path.insert(0, calculator_path_abs)  # CRITICAL: Do this BEFORE importing
   
-  # ❌ WRONG:
-  webapp_path = os.path.join(current_dir, 'webapp')  # Would be /app/deployment/webapp (doesn't exist!)
+  from Calculadora_Modalidad_40_CORREGIDA import CalculadoraModalidad40Corregida
+  
+  # ❌ WRONG - Path added too late or not at all:
+  from Calculadora_Modalidad_40_CORREGIDA import ...  # FAILS - path not configured
+  sys.path.append(calculator_path)  # Too late!
   ```
+
+**Deployment Entry Point Structure:**
+- `main.py` (root level) imports webapp.app and exposes `app` variable for gunicorn
+- `deployment/Dockerfile` runs: `gunicorn main:app`
+- When gunicorn imports `main`, it executes `from webapp.app import app`
+- At that moment, `webapp/app.py` executes and MUST have paths configured internally
 
 When updating requirements documentation:
 1. Verify current IMSS regulations (they change frequently)
@@ -127,11 +138,11 @@ When working with contribution data:
 ## Key Files
 
 ### Deployment & Application
-- `deployment/main.py`: Railway entry point that imports Flask app
-- `deployment/Dockerfile`: Container build configuration
+- `main.py`: Railway entry point that imports Flask app
+- `deployment/Dockerfile`: Container build configuration (includes Spanish locale installation)
 - `deployment/Procfile`: Process definition for gunicorn
 - `deployment/railway.json`: Railway platform configuration
-- `webapp/app.py`: Main Flask application
+- `webapp/app.py`: Main Flask application (configures sys.path internally for calculator imports)
 - `calculadoras-python/Calculadora_Modalidad_40_CORREGIDA.py`: Core calculation engine
 - `requirements.txt`: Python dependencies (root level)
 

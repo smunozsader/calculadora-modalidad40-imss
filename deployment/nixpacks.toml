@@ -1,0 +1,7 @@
+[providers.python]
+
+[start]
+cmd = "gunicorn --chdir webapp app:app --host 0.0.0.0 --port $PORT"
+
+[variables]
+PYTHONPATH = "/app:/app/webapp:/app/calculadoras-python"

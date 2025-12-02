@@ -10,10 +10,11 @@ Usa las tablas variables corregidas de Ley 73
 
 from flask import Flask, render_template, request, jsonify, send_file
 import json
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 import sys
 import os
 import io
+import locale
 from reportlab.lib.pagesizes import letter, A4
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
@@ -28,6 +29,22 @@ print(f"DEBUG: Path absoluto: {os.path.abspath(calculator_path)}")
 print(f"DEBUG: Path existe: {os.path.exists(calculator_path)}")
 
 sys.path.append(calculator_path)
+
+# Configurar locale en español para nombres de meses
+try:
+    locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
+except:
+    try:
+        locale.setlocale(locale.LC_TIME, 'es_MX.UTF-8')
+    except:
+        pass  # Si no está disponible, usará el default
+
+# Zona horaria de México (CST = UTC-6)
+MEXICO_TZ = timezone(timedelta(hours=-6))
+
+def now_mexico():
+    """Retorna la fecha/hora actual en zona horaria de México (CST/CDT)"""
+    return datetime.now(MEXICO_TZ)
 
 try:
     from Calculadora_Modalidad_40_CORREGIDA import CalculadoraModalidad40Corregida
@@ -297,7 +314,7 @@ def calcular():
                 'factible': resultado['analisis_roi']['factible'],
                 'nivel_umas': round(resultado['analisis_roi']['nivel_umas'], 1)
             },
-            'fecha_calculo': datetime.now().strftime('%d/%m/%Y %H:%M'),
+            'fecha_calculo': now_mexico().strftime('%d/%m/%Y %H:%M'),
             'tope_maximo': calc.tope_diario_2025,
             'uma_2025': calc.uma_diaria_2025
         }
@@ -351,7 +368,7 @@ def test():
     return jsonify({
         'success': True,
         'message': 'Servidor funcionando correctamente',
-        'timestamp': datetime.now().isoformat()
+        'timestamp': now_mexico().isoformat()
     })
 
 @app.route('/test-calculator')
@@ -499,7 +516,7 @@ def generar_reporte_pdf():
         # Título
         story.append(Paragraph("ANÁLISIS MODALIDAD 40 IMSS", title_style))
         story.append(Paragraph("Reporte Técnico Personalizado de Pensión - Ley 73", styles['Normal']))
-        story.append(Paragraph(f"Fecha: {datetime.now().strftime('%d de %B de %Y')}", styles['Normal']))
+        story.append(Paragraph(f"Fecha: {now_mexico().strftime('%d de %B de %Y')}", styles['Normal']))
         story.append(Spacer(1, 20))
         
         # Base Normativa
@@ -687,54 +704,121 @@ def generar_reporte_pdf():
             story.append(Paragraph(edad_text, styles['Normal']))
             story.append(Spacer(1, 15))
         
-        # Calendario de Pagos y Proyección Financiera
-        story.append(Paragraph("CALENDARIO DE PAGOS Y PROYECCIÓN FINANCIERA", subtitle_style))
+        # ==================== CALENDARIO DE PAGOS DETALLADO ====================
+        story.append(Paragraph("INVERSIÓN TOTAL MODALIDAD 40", subtitle_style))
         
-        # Agregar información práctica sobre pagos
-        pago_mensual = con_mod40_data['pago_mensual_imss']
-        años_disponibles = resultados.get('edad_info', {}).get('años_disponibles', 1)
+        # Calcular totales REALES del desglose
+        total_inversion_real = 0
+        total_meses_real = 0
         
-        info_pagos = f"""
-        <b>Información de Pagos IMSS:</b><br/>
-        • Pago Mensual a IMSS: ${pago_mensual:,.0f} pesos<br/>
-        • Pago Anual: ${pago_mensual * 12:,.0f} pesos<br/>
-        • Inversión Total Estimada: ${pago_mensual * 12 * años_disponibles:,.0f} pesos<br/>
-        • Beneficio Mensual Adicional: ${diferencia_mensual:,.0f} pesos<br/>
-        • Recuperación de Inversión: {(pago_mensual * 12 * años_disponibles) / (diferencia_mensual * 12):.1f} años<br/><br/>
+        if 'desglose_anual' in resultados.get('inversion', {}):
+            for año, datos in resultados['inversion']['desglose_anual'].items():
+                total_inversion_real += datos.get('costo_anual', 0)
+                total_meses_real += datos.get('meses_pagados', 12)
         
-        <b>Fechas de Pago:</b> Del 1 al 15 de cada mes (pago por adelantado)<br/>
-        <b>Modalidad:</b> Ventanilla bancaria, transferencia o domiciliación automática
-        """
+        # PANEL DESTACADO - TOTAL EN GRANDE
+        panel_total_style = ParagraphStyle(
+            'PanelTotal',
+            parent=styles['Normal'],
+            fontSize=32,
+            textColor=colors.HexColor('#0d6efd'),
+            alignment=TA_CENTER,
+            fontName='Helvetica-Bold',
+            spaceAfter=10
+        )
         
-        story.append(Paragraph(info_pagos, styles['Normal']))
+        story.append(Paragraph("TOTAL A PAGAR DURANTE TODO EL PERÍODO", styles['Normal']))
+        story.append(Paragraph(f"${total_inversion_real:,.2f}", panel_total_style))
+        story.append(Spacer(1, 10))
+        
+        # Tabla resumen pequeña
+        resumen_inversion = [
+            ['Período', 'Total Meses', 'Promedio Mensual'],
+            [
+                f"{len(resultados.get('inversion', {}).get('desglose_anual', {}))} años",
+                f"{total_meses_real} meses",
+                f"${resultados.get('inversion', {}).get('promedio_mensual', 0):,.2f}"
+            ]
+        ]
+        
+        tabla_resumen_inv = Table(resumen_inversion, colWidths=[2*inch, 2*inch, 2*inch])
+        tabla_resumen_inv.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#0d6efd')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 10),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
+            ('TOPPADDING', (0, 0), (-1, -1), 10),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black)
+        ]))
+        
+        story.append(tabla_resumen_inv)
         story.append(Spacer(1, 15))
         
-        # Tabla de proyección anual si hay datos disponibles
-        if data.get('incluir_calendario', False) and 'desglose_anual' in resultados.get('inversion', {}):
-            calendario_data = [['Año', 'Tasa IMSS', 'Pago Mensual', 'Total Anual']]
+        # DESGLOSE DETALLADO POR AÑO - SIEMPRE INCLUIR
+        story.append(Paragraph("Desglose de Pagos por Año", subtitle_style))
+        
+        if 'desglose_anual' in resultados.get('inversion', {}):
+            calendario_data = [['Año', 'Tasa IMSS', 'Meses', 'Pago Mensual', 'Total Año']]
             
-            for año, datos in resultados['inversion']['desglose_anual'].items():
+            for año in sorted(resultados['inversion']['desglose_anual'].keys()):
+                datos = resultados['inversion']['desglose_anual'][año]
+                meses_pagados = datos.get('meses_pagados', 12)
                 calendario_data.append([
-                    año,
+                    str(año),
                     f"{datos['tasa_pct']:.3f}%",
-                    f"${datos['costo_mensual']:,.0f}",
-                    f"${datos['costo_anual']:,.0f}"
+                    str(meses_pagados),
+                    f"${datos['costo_mensual']:,.2f}",
+                    f"${datos['costo_anual']:,.2f}"
                 ])
             
-            tabla_calendario = Table(calendario_data, colWidths=[1*inch, 1.2*inch, 1.5*inch, 1.5*inch])
+            # Fila de TOTAL
+            calendario_data.append([
+                'TOTAL',
+                '',
+                str(total_meses_real),
+                f"${resultados['inversion']['promedio_mensual']:,.2f}",
+                f"${total_inversion_real:,.2f}"
+            ])
+            
+            tabla_calendario = Table(calendario_data, colWidths=[0.8*inch, 1*inch, 0.8*inch, 1.4*inch, 1.4*inch])
             tabla_calendario.setStyle(TableStyle([
-                ('BACKGROUND', (0, 0), (-1, 0), colors.orange),
+                # Header
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#0d6efd')),
                 ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
                 ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
                 ('FONTSIZE', (0, 0), (-1, -1), 9),
-                ('BOTTOMPADDING', (0, 0), (-1, -1), 12),
-                ('ALTERNATEROWCOLORS', (0, 1), (-1, -1), [colors.white, colors.lightgrey]),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
+                ('TOPPADDING', (0, 0), (-1, -1), 10),
+                # Alternar colores en filas de datos
+                ('ROWBACKGROUNDS', (0, 1), (-1, -2), [colors.white, colors.lightgrey]),
+                # Fila de TOTAL
+                ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor('#28a745')),
+                ('TEXTCOLOR', (0, -1), (-1, -1), colors.white),
+                ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, -1), (-1, -1), 11),
                 ('GRID', (0, 0), (-1, -1), 1, colors.black)
             ]))
             
             story.append(tabla_calendario)
             story.append(Spacer(1, 15))
+        
+        # Información práctica sobre pagos
+        info_pagos = f"""
+        <b>Información Importante de Pagos:</b><br/>
+        • <b>Fechas de Pago:</b> Del 1 al 15 de cada mes (pago por adelantado)<br/>
+        • <b>Modalidad:</b> Ventanilla bancaria, transferencia o domiciliación automática<br/>
+        • <b>Beneficio Mensual Adicional:</b> ${diferencia_mensual:,.0f} pesos<br/>
+        • <b>Recuperación de Inversión:</b> {total_inversion_real / (diferencia_mensual * 12):.1f} años<br/><br/>
+        
+        <b>IMPORTANTE:</b> Los pagos se detienen exactamente cuando cumples {edad_info.get('edad_pension', 65)} años.
+        El último año solo pagarás los meses necesarios hasta tu cumpleaños (ver columna "Meses" en tabla).
+        """
+        
+        story.append(Paragraph(info_pagos, styles['Normal']))
+        story.append(Spacer(1, 20))
         
         # Recomendaciones si están seleccionadas
         if data.get('incluir_recomendaciones', False):
@@ -840,7 +924,7 @@ def generar_reporte_pdf():
         
         # Pie de página informativo
         footer_text = f"""
-        <b>Documento generado el:</b> {datetime.now().strftime('%d de %B de %Y a las %H:%M hrs')}<br/>
+        <b>Documento generado el:</b> {now_mexico().strftime('%d de %B de %Y a las %H:%M hrs')}<br/>
         <b>Calculadora:</b> Sistema de Análisis Modalidad 40 IMSS - Ley del Seguro Social 1973<br/>
         <b>Versión:</b> 2.0 (Fórmulas Variables Validadas con Base Actuarial)<br/>
         <b>Fuente Legal:</b> Ley del Seguro Social, Arts. 154, 162, 167, 171 y disposiciones vigentes<br/>

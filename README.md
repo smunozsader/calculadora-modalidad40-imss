@@ -1,33 +1,54 @@
 # 🧮 Calculadora Modalidad 40 IMSS - Proyecto Completo
 
-## 📁 Estructura del Proyecto
+Calculadora web completa para estimar pensiones bajo la Modalidad 40 del IMSS según la Ley 73 del Seguro Social mexicano.
+
+## ✨ Características Principales
+
+- ✅ **Validación de Elegibilidad**: Verifica automáticamente acceso a Modalidad 40 (Ley 73 vs Ley 97)  
+- 📊 **Cálculo Dinámico**: Múltiples escenarios y proyecciones de pensión
+- 💰 **Timeline de Pagos**: Pagos mensuales detallados por año hasta retiro
+- 📄 **Reportes PDF**: Generación de reportes personalizados
+- 🔒 **Cumplimiento Legal**: Implementa restricciones y requisitos IMSS
+
+## 📁 Estructura del Proyecto (Reorganizada)
 
 ```
-2025. SEMANAS COTIZADAS SERGIO/
-├── 📱 webapp/                          # Aplicación Web Flask
-│   ├── app.py                         # Aplicación principal
+CALCULADORA-MODALIDAD40-IMSS/
+├── 📄 main.py                          # Entry point para desarrollo local
+├── 📄 requirements.txt                 # Dependencias Python
+├── 📄 runtime.txt                      # Versión Python
+├── 📄 .gitignore                       # Exclusiones Git
+├── 📄 README.md                        # Este archivo
+│
+├── 📱 webapp/                          # Aplicación Web Flask  
+│   ├── app.py                         # Backend Flask principal
 │   ├── templates/                     # Templates HTML
-│   │   ├── index.html                 # Calculadora principal
-│   │   └── info.html                  # Información educativa
-│   ├── README.md                      # Documentación del webapp
-│   └── render-deploy.md               # Guías de despliegue
+│   │   └── index.html                 # Calculadora principal + validación Ley 97
+│   └── README.md                      # Documentación webapp
 │
-├── 🐍 calculadoras-python/            # Motores de Cálculo
-│   ├── Calculadora_Modalidad_40_CORREGIDA.py    # ✅ Motor principal (tablas variables)
-│   ├── Calculadora_Modalidad_40_Universal.py    # Versión universal
-│   ├── Calculo_Pension_Ley73_COMPLETO.py       # Cálculos Ley 73 completos
-│   ├── Interfaz_Calculadora_Modalidad40.py     # Interfaz standalone
-│   └── Verificacion_Calculos_REALES.py         # Validaciones matemáticas
+├── 🐍 calculadoras-python/            # Motor de Cálculo
+│   └── Calculadora_Modalidad_40_CORREGIDA.py    # ✅ Lógica principal pensiones
 │
-├── 📚 documentos/                     # Análisis y Documentación
-│   ├── Analisis*.md                  # Análisis actuariales y matemáticos
-│   ├── Comparativa*.md               # Comparativas de estrategias
-│   ├── Requisitos*.md                # Requisitos legales y normativos
-│   └── RESUMEN*.md                   # Resúmenes ejecutivos
+├── 📚 documentos/                     # Documentación Técnica y Legal
+│   ├── ley_77.md                     # 🚨 Requisitos legales Ley 97 (crítico)
+│   ├── Requisitos Modalidad 40.md    # Requisitos completos IMSS
+│   └── Analisis *.md                 # Análisis técnicos diversos
 │
-├── 📊 calculadoras excel/             # Hojas de Cálculo Excel
-│   ├── 2025. saldo afore al mes de oct.csv
-│   ├── Calculador de Pensiones ley 73 (2018) Sergio de Alba(1).xlsm
+├── 📊 calculadoras excel/             # Referencias Excel
+│   └── *.csv, *.xlsm                 # Hojas cálculo referencia
+│
+├── 🔧 tests/                          # Tests y Utilidades 
+│   ├── test_*.py                     # Tests funcionalidad
+│   └── fix_js_scope.py               # Utilidades desarrollo
+│
+├── 🚀 deployment/                      # Configuración Despliegue
+│   ├── main.py                       # Entry point Railway
+│   ├── railway.json                  # Config Railway
+│   ├── Dockerfile                    # Config Docker  
+│   └── *.toml, Procfile             # Configs deployment
+│
+├── 📁 logs/                           # Logs deployment
+├── 📁 normativa/                      # Normativa IMSS
 │   └── tablas_referencia_UMA_CORREGIDAS.csv
 │
 ├── 📄 latex/                          # Documentos LaTeX y PDFs

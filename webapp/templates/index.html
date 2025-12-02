@@ -284,7 +284,7 @@
                                             </div>
                                             <div class="row">
                                                 <div class="col-md-6 mb-2">
-                                                    <select class="form-select" id="mes_ultima_cotizacion" required onchange="calcularFechaLimite()">
+                                                    <select class="form-select" id="mes_ultima_cotizacion" required onchange="calcularFechaLimite(); validarElegibilidadConDeadline()">
                                                         <option value="">Selecciona mes</option>
                                                         <option value="1">Enero</option><option value="2">Febrero</option><option value="3">Marzo</option>
                                                         <option value="4">Abril</option><option value="5">Mayo</option><option value="6">Junio</option>
@@ -294,7 +294,7 @@
                                                 </div>
                                                 <div class="col-md-6 mb-2">
                                                     <input type="number" class="form-control" id="año_ultima_cotizacion" 
-                                                           placeholder="Año" min="1990" max="2025" required onchange="calcularFechaLimite()">
+                                                           placeholder="Año" min="1990" max="2025" required onchange="calcularFechaLimite(); validarElegibilidadConDeadline()">
                                                 </div>
                                             </div>
                                             <div class="form-text">
@@ -1196,6 +1196,52 @@
             return meses[parseInt(numeroMes) - 1];
         }
         
+        // Validar elegibilidad considerando deadline de inscripción
+        function validarElegibilidadConDeadline() {
+            const mesUltima = document.getElementById('mes_ultima_cotizacion')?.value;
+            const añoUltima = document.getElementById('año_ultima_cotizacion')?.value;
+            
+            if (!mesUltima || !añoUltima) {
+                return true; // No validar si no están ambos campos
+            }
+            
+            // Calcular deadline (5 años después de última cotización)
+            const fechaUltima = new Date(parseInt(añoUltima), parseInt(mesUltima) - 1, 1);
+            const fechaLimite = new Date(parseInt(añoUltima) + 5, parseInt(mesUltima) - 1, 1);
+            const hoy = new Date();
+            
+            // Verificar si ya pasó el deadline
+            if (hoy > fechaLimite) {
+                alert('⛔ FECHA LÍMITE VENCIDA\\n\\nTu fecha límite para inscribirte a Modalidad 40 venció en ' + obtenerNombreMes(mesUltima) + ' ' + (parseInt(añoUltima) + 5) + '.\\n\\nHas perdido el derecho PERMANENTE a Modalidad 40.\\n\\nYa NO puedes inscribirte ni mejorar tu pensión mediante este programa.');
+                return false;
+            }
+            
+            return true;
+        }
+        
+        // Validar elegibilidad considerando deadline de inscripción
+        function validarElegibilidadConDeadline() {
+            const mesUltima = document.getElementById('mes_ultima_cotizacion')?.value;
+            const añoUltima = document.getElementById('año_ultima_cotizacion')?.value;
+            
+            if (!mesUltima || !añoUltima) {
+                return true; // No validar si no están ambos campos
+            }
+            
+            // Calcular deadline (5 años después de última cotización)
+            const fechaUltima = new Date(parseInt(añoUltima), parseInt(mesUltima) - 1, 1);
+            const fechaLimite = new Date(parseInt(añoUltima) + 5, parseInt(mesUltima) - 1, 1);
+            const hoy = new Date();
+            
+            // Verificar si ya pasó el deadline
+            if (hoy > fechaLimite) {
+                alert('⛔ FECHA LÍMITE VENCIDA\n\nTu fecha límite para inscribirte a Modalidad 40 venció en ' + obtenerNombreMes(mesUltima) + ' ' + (parseInt(añoUltima) + 5) + '.\n\nHas perdido el derecho PERMANENTE a Modalidad 40.\n\nYa NO puedes inscribirte ni mejorar tu pensión mediante este programa.');
+                return false;
+            }
+            
+            return true;
+        }
+        
         // Función para establecer tope máximo
         function setTopeMaximo() {
             document.getElementById('sbc_modalidad40').value = '2464.58';
@@ -1470,6 +1516,11 @@
             
             console.log('✅ Usuario elegible confirmado, procediendo con cálculo...');
             
+            // Validar deadline de inscripción antes de continuar
+            if (!validarElegibilidadConDeadline()) {
+                return;
+            }
+            
             // Mostrar loading
             document.querySelector('.loading').style.display = 'block';
             document.querySelector('button[type="submit"]').style.display = 'none';
@@ -1491,6 +1542,10 @@
                 mes_inicio_cotizacion: document.getElementById('mes_inicio_cotizacion').value,
                 año_inicio_cotizacion: document.getElementById('año_inicio_cotizacion').value,
                 
+                // Última cotización (para deadline de inscripción)
+                mes_ultima_cotizacion: document.getElementById('mes_ultima_cotizacion')?.value || '',
+                año_ultima_cotizacion: document.getElementById('año_ultima_cotizacion')?.value || '',
+                
                 // Datos IMSS y cálculo
                 semanas_cotizadas: document.getElementById('semanas_cotizadas').value,
                 sdp_actual: document.getElementById('sdp_actual').value,
@@ -1507,6 +1562,13 @@
             
             // Debug: Verificar datos antes de enviar
             console.log('Datos a enviar:', formData);
+            
+            // Validar deadline de inscripción
+            if (!validarElegibilidadConDeadline()) {
+                document.querySelector('.loading').style.display = 'none';
+                document.querySelector('button[type="submit"]').style.display = 'block';
+                return;
+            }
             
             // Validación extra para edad_pension
             if (!formData.edad_pension) {

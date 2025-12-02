@@ -233,14 +233,16 @@ class CalculadoraModalidad40Corregida:
         
         return resultado
     
-    def calcular_inversion_total_años(self, sbc_diario: float, año_inicio: int = 2025, años_cotizar: int = 5) -> Dict:
+    def calcular_inversion_total_años(self, sbc_diario: float, año_inicio: int = 2025, años_cotizar: int = 5, meses_año_final: int = 12) -> Dict:
         """
         Calcular inversión total durante el número de años especificado
+        ⚠️ IMPORTANTE: Calcula exactamente hasta cumplir 65 años, no años completos
         
         Args:
             sbc_diario: SBC diario deseado
             año_inicio: Año de inicio (default 2025)
             años_cotizar: Número de años a cotizar (default 5, puede ser menor)
+            meses_año_final: Meses a cotizar en el año final (default 12 = año completo)
             
         Returns:
             Dictionary con desglose anual y total
@@ -249,24 +251,35 @@ class CalculadoraModalidad40Corregida:
             'desglose_anual': {},
             'total_años': 0,
             'promedio_mensual': 0,
-            'años_cotizados': años_cotizar
+            'años_cotizados': años_cotizar,
+            'meses_año_final': meses_año_final,
+            'meses_totales': (años_cotizar - 1) * 12 + meses_año_final
         }
         
         total = 0
         for i in range(años_cotizar):
             año = año_inicio + i
             costo_mensual = self.calcular_costo_mensual(sbc_diario, año)
-            costo_anual = costo_mensual * 12
+            
+            # En el último año, solo contar los meses hasta cumplir 65
+            if i == años_cotizar - 1:
+                meses_a_pagar = meses_año_final
+            else:
+                meses_a_pagar = 12
+                
+            costo_anual = costo_mensual * meses_a_pagar
             total += costo_anual
             
             resultado['desglose_anual'][año] = {
                 'tasa_pct': self.tasas_modalidad40[año],
                 'costo_mensual': costo_mensual,
+                'meses_pagados': meses_a_pagar,
                 'costo_anual': costo_anual
             }
         
+        meses_totales = (años_cotizar - 1) * 12 + meses_año_final
         resultado['total_años'] = total
-        resultado['promedio_mensual'] = total / (años_cotizar * 12)
+        resultado['promedio_mensual'] = total / meses_totales if meses_totales > 0 else 0
         
         return resultado
     
@@ -418,9 +431,12 @@ class CalculadoraModalidad40Corregida:
                                   num_hijos_dependientes: int = 0,
                                   tiene_padres_dependientes: bool = False,
                                   año_inicio: int = 2025,
-                                  edad_actual: int = None) -> Dict:
+                                  edad_actual: int = None,
+                                  mes_nacimiento: int = None,
+                                  mes_inicio_modalidad40: int = 1) -> Dict:
         """
         Calcular escenario completo con TABLAS VARIABLES: situación actual vs con Modalidad 40
+        ⚠️ CALCULA EXACTAMENTE HASTA CUMPLIR 65 AÑOS, NO AÑOS COMPLETOS
         
         Args:
             semanas_cotizadas_actuales: Semanas ya cotizadas
@@ -431,6 +447,9 @@ class CalculadoraModalidad40Corregida:
             num_hijos_dependientes: Número de hijos menores/estudiando
             tiene_padres_dependientes: Si tiene padres dependientes
             año_inicio: Año de inicio Modalidad 40
+            edad_actual: Edad actual del usuario
+            mes_nacimiento: Mes de nacimiento (1-12) para calcular meses exactos
+            mes_inicio_modalidad40: Mes de inicio de Modalidad 40 (default enero)
             
         Returns:
             Dictionary completo con ambos escenarios y análisis ROI
@@ -454,17 +473,43 @@ class CalculadoraModalidad40Corregida:
             tiene_esposa, num_hijos_dependientes, tiene_padres_dependientes
         )
         
-        # ESCENARIO CON MODALIDAD 40 (calcular semanas según años disponibles)
-        # Calcular años reales disponibles desde edad actual hasta pensión
+        # ESCENARIO CON MODALIDAD 40 (calcular MESES EXACTOS hasta cumplir edad_pension)
         if edad_actual is not None:
-            años_disponibles = edad_pension - edad_actual
+            años_completos = edad_pension - edad_actual - 1  # Años completos
+            
+            # Calcular meses en el año final hasta cumplir edad_pension
+            if mes_nacimiento is not None:
+                # Si nace en julio (mes 7) e inicia modalidad 40 en enero (mes 1)
+                # Pagará: enero-julio = 7 meses
+                if mes_inicio_modalidad40 <= mes_nacimiento:
+                    meses_año_final = mes_nacimiento - mes_inicio_modalidad40 + 1
+                else:
+                    # Si inicia después de su cumpleaños
+                    meses_año_final = 12 - mes_inicio_modalidad40 + mes_nacimiento + 1
+            else:
+                # Sin mes de nacimiento, asumir año completo final
+                meses_año_final = 12
+                años_completos = edad_pension - edad_actual
         else:
             # Fallback: asumir se retira a los 65 (máximo común)
-            años_disponibles = max(1, 65 - edad_pension) if edad_pension < 65 else 1
+            años_completos = max(0, 65 - edad_pension) if edad_pension < 65 else 0
+            meses_año_final = 12
         
-        # Modalidad 40 permite máximo 6 años (hasta 2030), pero debe permitir mínimo 1 año
-        años_para_modalidad40 = max(1, min(6, años_disponibles))
-        semanas_modalidad40 = años_para_modalidad40 * 52
+        # Total de años a procesar
+        años_totales = años_completos + (1 if meses_año_final > 0 else 0)
+        
+        # Modalidad 40 permite máximo 6 años (hasta 2030)
+        años_para_modalidad40 = max(1, min(6, años_totales))
+        
+        # Ajustar meses si llegamos al límite de 6 años
+        if años_totales > 6:
+            años_completos = 6
+            meses_año_final = 0
+            años_para_modalidad40 = 6
+        
+        # Calcular semanas exactas (semanas = meses * 4.33)
+        meses_totales = años_completos * 12 + meses_año_final
+        semanas_modalidad40 = int(meses_totales * 4.33)  # Aproximación estándar
         semanas_finales_con_mod40 = semanas_cotizadas_actuales + semanas_modalidad40
         
         # Calcular nuevo SDP (promedio últimas 250 semanas)
@@ -487,8 +532,13 @@ class CalculadoraModalidad40Corregida:
             tiene_esposa, num_hijos_dependientes, tiene_padres_dependientes
         )
         
-        # ANÁLISIS DE INVERSIÓN (usar años reales disponibles)
-        inversion_mod40 = self.calcular_inversion_total_años(sbc_modalidad40_diario, año_inicio, años_para_modalidad40)
+        # ANÁLISIS DE INVERSIÓN (usar meses exactos)
+        inversion_mod40 = self.calcular_inversion_total_años(
+            sbc_modalidad40_diario, 
+            año_inicio, 
+            años_para_modalidad40,
+            meses_año_final if años_para_modalidad40 == años_totales else 12
+        )
         
         # ANÁLISIS ROI
         diferencia_mensual = pension_con_mod40['pension_final_mensual'] - pension_sin_mod40['pension_final_mensual']
